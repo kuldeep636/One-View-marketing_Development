@@ -118,13 +118,7 @@ cancelled = len(
     ]
 )
 
-planned = len(
-    view_df[
-        (view_df["Execution Status"] == "Pending")
-        &
-        (view_df["Activity Start date"] > today)
-    ]
-)
+planned = len(view_df)
 
 pending = len(
     view_df[
