@@ -163,20 +163,24 @@ if len(activity_df) > 0:
             # ==================================
             # VALIDATION
             # ==================================
+            
             activity_start_date = pd.to_datetime(
                 activity.get("Activity Start date"),
                 errors="coerce"
             )
+            
             if (
                 execution_status == "Executed"
                 and pd.notna(activity_start_date)
-                execution_date < activity_start_date.date()
+                and execution_date < activity_start_date.date()
             ):
+            
                 st.error(
                     f"❌ Activity cannot be marked Executed "
                     f"before its Start Date "
                     f"({activity_start_date.strftime('%d-%b-%Y')})"
                 )
+            
                 st.stop()
             
             success = update_activity_execution(
