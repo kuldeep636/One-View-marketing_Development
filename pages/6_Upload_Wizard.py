@@ -54,6 +54,7 @@ st.set_page_config(
     page_icon="📤",
     layout="wide"
 )
+
 inject_css()
 render_navigation()
 
@@ -68,6 +69,7 @@ st.markdown("""
     Marketing Data Upload Center
 </p>
 """, unsafe_allow_html=True)
+
 st.divider()
 
 if st.session_state.upload_completed:
@@ -120,7 +122,7 @@ with col2:
 st.info(f"**Selected Period**: {month} {year}")
 st.divider()
 
-# Upload Guidelines & Sample Template (unchanged - kept compact)
+# Upload Guidelines & Sample Template
 with st.expander("📋 Allowed Values & Upload Guidelines", expanded=False):
     st.markdown("""... [your original guidelines] ...""")
 
@@ -207,15 +209,15 @@ elif role == "Brand Manager":
         if "|" in item:
             zone_name, brand_name = item.split("|", 1)
             mappings.append({"zone": zone_name.strip(), "brand": brand_name.strip()})
-    
+   
     if not mappings:
         st.error("No access mapping configured.")
         st.stop()
-    
+   
     allowed_zones = sorted({m["zone"] for m in mappings})
     zone = st.selectbox("Select Zone", allowed_zones)
     allowed_brands = sorted([m["brand"] for m in mappings if m["zone"] == zone])
-    
+   
     if len(allowed_brands) == 1:
         brand = allowed_brands[0]
         st.text_input("Brand", value=brand, disabled=True)
@@ -254,20 +256,20 @@ validation_passed = False
 if uploaded_file and df_upload is not None:
     st.divider()
     st.subheader("Step 6 : Data Validation")
-    
-    # ... [Your validation code remains the same until the summary] ...
-    # (I kept the full validation logic but ensured proper indentation)
+   
+    # ... [Your full validation logic goes here] ...
+    # (validation_errors, invalid_row_numbers, etc.)
 
     # Summary
     total_rows = len(df_upload)
-    invalid_count = len(invalid_row_numbers)
+    invalid_count = len(invalid_row_numbers) if 'invalid_row_numbers' in locals() else 0
     valid_count = total_rows - invalid_count
     c1, c2, c3 = st.columns(3)
     c1.metric("Total Rows", total_rows)
     c2.metric("✅ Valid Rows", valid_count)
     c3.metric("❌ Invalid Rows", invalid_count)
 
-    if validation_errors:
+    if 'validation_errors' in locals() and validation_errors:
         st.error(f"Found {len(validation_errors)} validation issues")
         with st.expander("📋 View Validation Errors"):
             for error in validation_errors[:50]:
@@ -277,10 +279,6 @@ if uploaded_file and df_upload is not None:
     else:
         st.success("🎉 All validations passed!")
         validation_passed = True
-
-
-
-
 
 # ==================================
 # DUPLICATE CHECK
@@ -306,15 +304,68 @@ if validation_passed and df_upload is not None:
 
         duplicate_found = True
 
-        ...
+        uploaded_by = "Unknown"
+        if (
+            "Uploaded By" in duplicate_check.columns
+            and
+            not duplicate_check["Uploaded By"].dropna().empty
+        ):
+            uploaded_by = (
+                duplicate_check["Uploaded By"]
+                .dropna()
+                .astype(str)
+                .iloc[0]
+            )
+
+        upload_time = "Unknown"
+        if (
+            "Upload Timestamp" in duplicate_check.columns
+            and
+            not duplicate_check["Upload Timestamp"].dropna().empty
+        ):
+            upload_time = (
+                duplicate_check["Upload Timestamp"]
+                .dropna()
+                .astype(str)
+                .iloc[0]
+            )
+
+        st.error(
+            f"""
+⚠ Marketing Plan Already Exists
+
+Year : {year}
+Month : {month}
+Zone : {zone}
+Brand : {brand}
+
+Uploaded By : {uploaded_by}
+
+Upload Time : {upload_time}
+"""
+        )
+
+        allow_reupload = st.checkbox(
+            "I confirm this upload is intentional"
+        )
 # ==================================
 # UPLOAD SECTION
 # ==================================
-if validation_passed and df_upload is not None and (not duplicate_found or allow_reupload):
+if (
+    validation_passed
+    and
+    df_upload is not None
+    and
+    (
+        not duplicate_found
+        or
+        allow_reupload
+    )
+):
     if st.button("🚀 Upload to Google Sheets", type="primary", use_container_width=True):
         try:
             final_df = df_upload.copy()
-            
+           
             # Auto-populate system fields
             final_df["Zone"] = zone
             final_df["Brand"] = brand
@@ -327,23 +378,23 @@ if validation_passed and df_upload is not None and (not duplicate_found or allow
             final_df["Remarks"] = ""
             final_df["Uploaded By"] = name
             final_df["Upload Timestamp"] = datetime.now()
-            
+           
             sheet_name_map = {
                 "Marketing Plan": "Marketing Plan",
                 "Expense Data": "Expenes",
                 "Budget Data": "Budget and Target Overview"
             }
-            
+           
             sheet_name = sheet_name_map.get(upload_type)
             if not sheet_name:
                 st.error("Invalid upload type")
             else:
                 with st.spinner("Uploading Marketing Plan..."):
                     append_dataframe_to_sheet(sheet_name, final_df)
-                
+               
                 st.cache_data.clear()
                 st.session_state.upload_completed = True
                 st.rerun()
-                
+               
         except Exception as e:
             st.error(f"❌ Upload failed: {e}")
