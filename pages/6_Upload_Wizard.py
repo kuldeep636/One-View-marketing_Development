@@ -7,19 +7,40 @@ from utils.ui import inject_css
 
 ACTIVITY_SUBTYPES = {
     "ATL": [
-        "Newspaper Advertisement", "Magazine Advertisement", "Radio Campaign",
-        "Hoarding", "Cinema Advertising", "TV Advertising", "Elevator Promotions",
+        "Newspaper Advertisement",
+        "Magazine Advertisement",
+        "Radio Campaign",
+        "Hoarding",
+        "Cinema Advertising",
+        "TV Advertising",
+        "Elevator Promotions",
         "Leaflet Distribution"
     ],
     "BTL": [
-        "Mall Display", "Hotel Display", "Roadshow / Drive Event", "Corporate Activity",
-        "RWA/Society Display", "CSR Activity", "Special Day / Experiential Activity",
-        "Service Camp", "Service Clinic", "Test Drive Event", "Customer Meet",
-        "Surveyor's Meet", "Product Launch", "Exhibition", "Golf Event"
+        "Mall Display",
+        "Hotel Display",
+        "Roadshow / Drive Event",
+        "Corporate Activity",
+        "RWA/Society Display",
+        "CSR Activity",
+        "Special Day / Experiential Activity",
+        "Service Camp",
+        "Service Clinic",
+        "Test Drive Event",
+        "Customer Meet",
+        "Surveyor's Meet",
+        "Product Launch",
+        "Exhibition",
+        "Golf Event"
     ],
     "DIGITAL": [
-        "Content Creation", "Meta Ads", "Google Ads", "SEO", "Email Marketing",
-        "WhatsApp Marketing", "Influencer Marketing"
+        "Content Creation",
+        "Meta Ads",
+        "Google Ads",
+        "SEO",
+        "Email Marketing",
+        "WhatsApp Marketing",
+        "Influencer Marketing"
     ]
 }
 
@@ -123,13 +144,76 @@ st.info(f"**Selected Period**: {month} {year}")
 st.divider()
 
 # Upload Guidelines & Sample Template
-with st.expander("📋 Allowed Values & Upload Guidelines", expanded=False):
-    st.markdown("""... [your original guidelines] ...""")
+# ==================================
+# UPLOAD GUIDELINES
+# ==================================
+with st.expander(
+    "📋 Allowed Values & Upload Guidelines",
+    expanded=False
+):
+    st.markdown("""
+    ### Vertical
+    - Sales
+    - After Sales
+    ### Activity Type
+    - ATL
+    - BTL
+    - DIGITAL
+    - FLEXY
+    ### Date Format
+    - DD-MMM-YYYY
+    - Example: 01-Jul-2026
+    ### Investment
+    - Numeric values only
+    - Example: 50000
+    ### Important Validation Rules
+    - Activity Start Date must belong to the selected Month & Year
+    - Activity End Date must belong to the selected Month & Year
+    - Blank values are not allowed
+    - Invalid Activity Types are not allowed
+    - Invalid Vertical values are not allowed
+    """)
 
 with st.expander("📋 Activity Type & Sub Type Guidelines"):
-    st.markdown("""... [your original subtypes] ...""")
+    st.markdown("""
+### ATL
+- Newspaper Advertisement
+- Magazine Advertisement
+- Radio Campaign
+- Hoarding
+- Cinema Advertising
+- TV Advertising
+- Leaflet Distribution
+- Elevator Promotions
+### BTL
+- Mall Display
+- Hotel Display
+- Roadshow / Drive Event
+- Corporate Activity
+- RWA/Society Display
+- CSR Activity
+- Special Day / Experiential Activity
+- Service Camp
+- Service Clinic
+- Test Drive Event
+- Customer Meet
+- Surveyor's Meet
+- Product Launch
+- Exhibition
+- Golf Event
+### DIGITAL
+- Content Creation
+- Meta Ads
+- Google Ads
+- SEO
+- Email Marketing
+- WhatsApp Marketing
+- Influencer Marketing
+""")
 
-# Sample Template Download
+# ==================================
+# SAMPLE TEMPLATE
+# ==================================
 st.subheader("📥 Download Sample Template")
 from io import BytesIO
 sample_df = create_sample_template()
