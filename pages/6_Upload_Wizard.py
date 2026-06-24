@@ -342,37 +342,74 @@ elif role == "Zonal Head":
 
 # BRAND MANAGER
 elif role == "Brand Manager":
-    zone = st.session_state.get(
-        "zone_access",
-        ""
+
+    access_mapping = str(
+        st.session_state.get(
+            "access_mapping",
+            ""
+        )
     )
-    brand_access = st.session_state.get(
-        "brand_access",
-        ""
+
+    mappings = []
+
+    for item in access_mapping.split(";"):
+
+        item = item.strip()
+
+        if "|" in item:
+
+            zone_name, brand_name = item.split("|", 1)
+
+            mappings.append({
+                "zone": zone_name.strip(),
+                "brand": brand_name.strip()
+            })
+
+    if not mappings:
+
+        st.error(
+            "No access mapping configured."
+        )
+        st.stop()
+
+    allowed_zones = sorted(
+        list(
+            {
+                m["zone"]
+                for m in mappings
+            }
+        )
     )
-    st.text_input(
-        "Zone",
-        value=zone,
-        disabled=True
+
+    zone = st.selectbox(
+        "Select Zone",
+        allowed_zones
     )
-    allowed_brands = [
-        b.strip()
-        for b in str(brand_access).split(",")
-        if b.strip()
-    ]
+
+    allowed_brands = sorted(
+        [
+            m["brand"]
+            for m in mappings
+            if m["zone"] == zone
+        ]
+    )
+
     if len(allowed_brands) == 1:
+
         brand = allowed_brands[0]
+
         st.text_input(
             "Brand",
             value=brand,
             disabled=True
         )
+
     else:
+
         brand = st.selectbox(
             "Select Brand",
             allowed_brands
         )
-
 # INVALID ROLE
 else:
     st.error(
