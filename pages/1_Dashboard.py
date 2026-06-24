@@ -86,17 +86,53 @@ st.divider()
 # ==================================
 # 8. DATA NORMALIZATION (Once)
 # ==================================
+
 view_df = view_df.copy()
-view_df["Activity Type"] = view_df["Activity Type"].astype(str).str.strip().str.upper()
+
+view_df["Activity Type"] = (
+    view_df["Activity Type"]
+    .astype(str)
+    .str.strip()
+    .str.upper()
+)
+
+view_df["Activity Start date"] = pd.to_datetime(
+    view_df["Activity Start date"],
+    errors="coerce"
+)
+
+today = pd.Timestamp.today().normalize()
 
 # ==================================
 # 9. KPI CALCULATIONS
 # ==================================
-planned = len(view_df)
-executed = len(view_df[view_df["Execution Status"] == "Executed"])
-pending = len(view_df[view_df["Execution Status"] == "Pending"])
-cancelled = len(view_df[view_df["Execution Status"] == "Cancelled"])
+executed = len(
+    view_df[
+        view_df["Execution Status"] == "Executed"
+    ]
+)
 
+cancelled = len(
+    view_df[
+        view_df["Execution Status"] == "Cancelled"
+    ]
+)
+
+planned = len(
+    view_df[
+        (view_df["Execution Status"] == "Pending")
+        &
+        (view_df["Activity Start date"] > today)
+    ]
+)
+
+pending = len(
+    view_df[
+        (view_df["Execution Status"] == "Pending")
+        &
+        (view_df["Activity Start date"] <= today)
+    ]
+)
 execution_pct = round((executed / planned) * 100, 1) if planned > 0 else 0
 
 atl_count = len(view_df[view_df["Activity Type"] == "ATL"])
