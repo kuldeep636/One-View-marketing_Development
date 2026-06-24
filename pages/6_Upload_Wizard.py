@@ -302,102 +302,103 @@ if validation_passed and df_upload is not None:
 
     if not duplicate_check.empty:
 
-    duplicate_found = True
-
-    uploaded_by = "Unknown"
-    if (
-        "Uploaded By" in duplicate_check.columns
-        and
-        not duplicate_check["Uploaded By"].dropna().empty
-    ):
-        uploaded_by = (
-            duplicate_check["Uploaded By"]
-            .dropna()
-            .astype(str)
-            .iloc[0]
+        duplicate_found = True
+    
+        uploaded_by = "Unknown"
+        if (
+            "Uploaded By" in duplicate_check.columns
+            and
+            not duplicate_check["Uploaded By"].dropna().empty
+        ):
+            uploaded_by = (
+                duplicate_check["Uploaded By"]
+                .dropna()
+                .astype(str)
+                .iloc[0]
+            )
+    
+        upload_time = "Unknown"
+        if (
+            "Upload Timestamp" in duplicate_check.columns
+            and
+            not duplicate_check["Upload Timestamp"].dropna().empty
+        ):
+            upload_time = (
+                duplicate_check["Upload Timestamp"]
+                .dropna()
+                .astype(str)
+                .iloc[0]
+            )
+    
+        st.error(
+            f"""
+    ⚠ Marketing Plan Already Exists
+    
+    Year : {year}
+    Month : {month}
+    Zone : {zone}
+    Brand : {brand}
+    
+    Uploaded By : {uploaded_by}
+    
+    Upload Time : {upload_time}
+    """
         )
-
-    upload_time = "Unknown"
-    if (
-        "Upload Timestamp" in duplicate_check.columns
-        and
-        not duplicate_check["Upload Timestamp"].dropna().empty
-    ):
-        upload_time = (
-            duplicate_check["Upload Timestamp"]
-            .dropna()
-            .astype(str)
-            .iloc[0]
+    
+        # Summary
+        total_activities = len(duplicate_check)
+    
+        total_investment = 0
+        if "Investment" in duplicate_check.columns:
+            total_investment = pd.to_numeric(
+                duplicate_check["Investment"],
+                errors="coerce"
+            ).fillna(0).sum()
+    
+        c1, c2 = st.columns(2)
+    
+        with c1:
+            st.metric(
+                "Existing Activities",
+                total_activities
+            )
+    
+        with c2:
+            st.metric(
+                "Total Investment",
+                f"₹ {total_investment:,.0f}"
+            )
+    
+        # Existing Plan Preview
+        preview_cols = [
+            "Activity Type",
+            "Activity Sub Type",
+            "Activity Description",
+            "Activity Start date",
+            "Activity End date",
+            "Investment"
+        ]
+    
+        available_cols = [
+            col
+            for col in preview_cols
+            if col in duplicate_check.columns
+        ]
+    
+        with st.expander(
+            "📋 View Existing Marketing Plan",
+            expanded=False
+        ):
+            st.dataframe(
+                duplicate_check[available_cols],
+                width="stretch",
+                hide_index=True
+            )
+    
+        allow_reupload = st.checkbox(
+            "I confirm this upload is intentional"
         )
-
-    st.error(
-        f"""
-⚠ Marketing Plan Already Exists
-
-Year : {year}
-Month : {month}
-Zone : {zone}
-Brand : {brand}
-
-Uploaded By : {uploaded_by}
-
-Upload Time : {upload_time}
-"""
-    )
-
-    # Summary
-    total_activities = len(duplicate_check)
-
-    total_investment = 0
-    if "Investment" in duplicate_check.columns:
-        total_investment = pd.to_numeric(
-            duplicate_check["Investment"],
-            errors="coerce"
-        ).fillna(0).sum()
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.metric(
-            "Existing Activities",
-            total_activities
-        )
-
-    with c2:
-        st.metric(
-            "Total Investment",
-            f"₹ {total_investment:,.0f}"
-        )
-
-    # Existing Plan Preview
-    preview_cols = [
-        "Activity Type",
-        "Activity Sub Type",
-        "Activity Description",
-        "Activity Start date",
-        "Activity End date",
-        "Investment"
-    ]
-
-    available_cols = [
-        col
-        for col in preview_cols
-        if col in duplicate_check.columns
-    ]
-
-    with st.expander(
-        "📋 View Existing Marketing Plan",
-        expanded=False
-    ):
-        st.dataframe(
-            duplicate_check[available_cols],
-            width="stretch",
-            hide_index=True
-        )
-
-    allow_reupload = st.checkbox(
-        "I confirm this upload is intentional"
-    )# ==================================
+# ==================================
 # UPLOAD SECTION
 # ==================================
 if (
