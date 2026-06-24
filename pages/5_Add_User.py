@@ -118,34 +118,75 @@ if role == "Zonal Head":
 # BRAND MANAGER
 # ==================================
 
+# ==================================
+# ACCESS MAPPING STORAGE
+# ==================================
+
+if "access_mapping_list" not in st.session_state:
+    st.session_state.access_mapping_list = []
+
+
+
 elif role == "Brand Manager":
 
-    zone = st.selectbox(
-        "Zone Access",
-        zone_options
+    brand_options = [
+        "Mercedes-Benz",
+        "MG",
+        "Honda",
+        "VW",
+        "Jeep",
+        "Renault",
+        "BYD"
+    ]
+
+    selected_zone = st.selectbox(
+        "Zone",
+        zone_options,
+        key="selected_zone"
     )
 
-    brand_options = sorted(
-        activity_df[
-            activity_df["Zone"]
-            .astype(str)
-            .str.strip()
-            == zone
-        ]["Brand"]
-        .dropna()
-        .astype(str)
-        .str.strip()
-        .unique()
-        .tolist()
+    selected_brand = st.selectbox(
+        "Brand",
+        brand_options,
+        key="selected_brand"
     )
 
-    selected_brands = st.multiselect(
-        "Brand Access",
-        brand_options
-    )
+    if st.button("➕ Add Access"):
 
-    brand = ",".join(selected_brands)
+        access_pair = (
+            f"{selected_zone}|{selected_brand}"
+        )
 
+        if access_pair not in st.session_state.access_mapping_list:
+
+            st.session_state.access_mapping_list.append(
+                access_pair
+            )
+
+    st.markdown("### Current Access")
+
+    for idx, access in enumerate(
+        st.session_state.access_mapping_list
+    ):
+
+        col1, col2 = st.columns([5, 1])
+
+        with col1:
+            st.write(access.replace("|", " | "))
+
+        with col2:
+
+            if st.button(
+                "🗑",
+                key=f"remove_{idx}"
+            ):
+
+                st.session_state.access_mapping_list.pop(idx)
+
+                st.rerun()
+
+    zone = "Custom"
+    brand = "Custom"
 # ==================================
 # FULL ACCESS ROLES
 # ==================================
