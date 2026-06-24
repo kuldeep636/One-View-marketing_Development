@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import date
+from utils.ui import inject_css
 from utils.gsheet import load_activity_data, update_activity_execution
 from utils.access import apply_role_access
 from utils.sidebar import render_navigation
@@ -13,7 +14,7 @@ st.set_page_config(
     page_icon="✅",
     layout="wide"
 )
-
+inject_css()
 # ==================================
 # SIDEBAR
 # ==================================
