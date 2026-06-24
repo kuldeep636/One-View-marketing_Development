@@ -278,37 +278,88 @@ if uploaded_file and df_upload is not None:
         st.success("🎉 All validations passed!")
         validation_passed = True
 
+
+
+
+
 # ==================================
 # DUPLICATE CHECK
 # ==================================
 allow_reupload = False
 duplicate_found = False
 
-if validation_passed and df_upload is not None:
+if (
+    validation_passed
+    and
+    df_upload is not None
+    and
+    (
+        not duplicate_found
+        or
+        allow_reupload
+    )
+):
+
     existing_df = load_activity_data()
+
     duplicate_check = existing_df[
-        (existing_df["Year"].astype(str) == str(year)) &
-        (existing_df["Month"].astype(str).str.strip() == str(month)) &
-        (existing_df["Zone"].astype(str).str.strip() == str(zone)) &
+        (existing_df["Year"].astype(str) == str(year))
+        &
+        (existing_df["Month"].astype(str).str.strip() == str(month))
+        &
+        (existing_df["Zone"].astype(str).str.strip() == str(zone))
+        &
         (existing_df["Brand"].astype(str).str.strip() == str(brand))
     ]
-    
+
     if not duplicate_check.empty:
+
         duplicate_found = True
-        uploaded_by = duplicate_check["Uploaded By"].dropna().astype(str).iloc[0] if "Uploaded By" in duplicate_check.columns else "Unknown"
-        upload_time = duplicate_check["Upload Timestamp"].dropna().astype(str).iloc[0] if "Upload Timestamp" in duplicate_check.columns else "Unknown"
-        
-        st.warning(f"""
-⚠ Marketing Plan already exists  
-Year : {year}  
-Month : {month}  
-Zone : {zone}  
-Brand : {brand}  
-Uploaded By : {uploaded_by}  
-Upload Time : {upload_time}  
-Please verify before uploading again.
-        """)
-        allow_reupload = st.checkbox("I confirm this upload is intentional")
+
+        uploaded_by = "Unknown"
+        if (
+            "Uploaded By" in duplicate_check.columns
+            and
+            not duplicate_check["Uploaded By"].dropna().empty
+        ):
+            uploaded_by = (
+                duplicate_check["Uploaded By"]
+                .dropna()
+                .astype(str)
+                .iloc[0]
+            )
+
+        upload_time = "Unknown"
+        if (
+            "Upload Timestamp" in duplicate_check.columns
+            and
+            not duplicate_check["Upload Timestamp"].dropna().empty
+        ):
+            upload_time = (
+                duplicate_check["Upload Timestamp"]
+                .dropna()
+                .astype(str)
+                .iloc[0]
+            )
+
+        st.error(
+            f"""
+⚠ Marketing Plan Already Exists
+
+Year : {year}
+Month : {month}
+Zone : {zone}
+Brand : {brand}
+
+Uploaded By : {uploaded_by}
+
+Upload Time : {upload_time}
+"""
+        )
+
+        allow_reupload = st.checkbox(
+            "I confirm this upload is intentional"
+        )
 
 # ==================================
 # UPLOAD SECTION
