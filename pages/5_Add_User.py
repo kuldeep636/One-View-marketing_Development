@@ -46,6 +46,11 @@ render_navigation()
 
 st.title("👤 Add User")
 
+
+access_mapping = ";".join(
+    st.session_state.access_mapping_list
+)
+
 # ==================================
 # ADD USER
 # ==================================
@@ -225,7 +230,8 @@ if st.button(
             name,
             role,
             zone,
-            brand
+            brand,
+            access_mapping
         )
 
         st.success(
