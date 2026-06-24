@@ -118,7 +118,8 @@ def add_user(
     name,
     role,
     zone,
-    brand
+    brand,
+    access_mapping=""
 ):
 
     try:
@@ -132,10 +133,10 @@ def add_user(
                 name,
                 role,
                 zone,
-                brand
+                brand,
+                access_mapping
             ]
         )
-
         st.cache_data.clear()
 
         return True
