@@ -47,10 +47,16 @@ render_navigation()
 st.title("👤 Add User")
 
 
+# ==================================
+# ACCESS MAPPING STORAGE
+# ==================================
+
+if "access_mapping_list" not in st.session_state:
+    st.session_state.access_mapping_list = []
+
 access_mapping = ";".join(
     st.session_state.access_mapping_list
 )
-
 # ==================================
 # ADD USER
 # ==================================
@@ -123,26 +129,15 @@ if role == "Zonal Head":
 # BRAND MANAGER
 # ==================================
 
-# ==================================
-# ACCESS MAPPING STORAGE
-# ==================================
-
-if "access_mapping_list" not in st.session_state:
-    st.session_state.access_mapping_list = []
-
-
-
 elif role == "Brand Manager":
 
-    brand_options = [
-        "Mercedes-Benz",
-        "MG",
-        "Honda",
-        "VW",
-        "Jeep",
-        "Renault",
-        "BYD"
-    ]
+    brand_options = sorted(
+        activity_df["Brand"]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist()
+    )
 
     selected_zone = st.selectbox(
         "Zone",
@@ -168,6 +163,8 @@ elif role == "Brand Manager":
                 access_pair
             )
 
+            st.rerun()
+
     st.markdown("### Current Access")
 
     for idx, access in enumerate(
@@ -177,7 +174,9 @@ elif role == "Brand Manager":
         col1, col2 = st.columns([5, 1])
 
         with col1:
-            st.write(access.replace("|", " | "))
+            st.write(
+                access.replace("|", " | ")
+            )
 
         with col2:
 
@@ -186,12 +185,15 @@ elif role == "Brand Manager":
                 key=f"remove_{idx}"
             ):
 
-                st.session_state.access_mapping_list.pop(idx)
+                st.session_state.access_mapping_list.pop(
+                    idx
+                )
 
                 st.rerun()
 
     zone = "Custom"
     brand = "Custom"
+
 # ==================================
 # FULL ACCESS ROLES
 # ==================================
@@ -200,10 +202,15 @@ else:
 
     st.info(
         "This role will have access to All Zones and All Brands."
-    )
+
+        
 # ==================================
 # ADD USER BUTTON
 # ==================================
+
+access_mapping = ";".join(
+    st.session_state.access_mapping_list
+)
 
 if st.button(
     "➕ Add User",
@@ -216,15 +223,18 @@ if st.button(
             "Please fill all required fields."
         )
 
-    elif role == "Brand Manager" and not brand:
+    elif (
+        role == "Brand Manager"
+        and len(st.session_state.access_mapping_list) == 0
+    ):
 
         st.error(
-            "Please select at least one brand."
+            "Please add at least one Zone-Brand Access."
         )
 
     else:
 
-        add_user(
+        success = add_user(
             user_id,
             password,
             name,
@@ -234,14 +244,17 @@ if st.button(
             access_mapping
         )
 
-        st.success(
-            "✅ User Added Successfully!"
-        )
+        if success:
 
-        st.cache_data.clear()
+            st.session_state.access_mapping_list = []
 
-        st.rerun()
+            st.success(
+                "✅ User Added Successfully!"
+            )
 
+            st.cache_data.clear()
+
+            st.rerun()
 # ==================================
 # USERS LIST
 # ==================================
