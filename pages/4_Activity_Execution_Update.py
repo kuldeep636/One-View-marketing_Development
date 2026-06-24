@@ -170,7 +170,7 @@ if len(activity_df) > 0:
             if (
                 execution_status == "Executed"
                 and pd.notna(activity_start_date)
-                and date.today() < activity_start_date.date()
+                execution_date < activity_start_date.date()
             ):
                 st.error(
                     f"❌ Activity cannot be marked Executed "
