@@ -288,17 +288,7 @@ if uploaded_file and df_upload is not None:
 allow_reupload = False
 duplicate_found = False
 
-if (
-    validation_passed
-    and
-    df_upload is not None
-    and
-    (
-        not duplicate_found
-        or
-        allow_reupload
-    )
-):
+if validation_passed and df_upload is not None:
 
     existing_df = load_activity_data()
 
@@ -316,51 +306,7 @@ if (
 
         duplicate_found = True
 
-        uploaded_by = "Unknown"
-        if (
-            "Uploaded By" in duplicate_check.columns
-            and
-            not duplicate_check["Uploaded By"].dropna().empty
-        ):
-            uploaded_by = (
-                duplicate_check["Uploaded By"]
-                .dropna()
-                .astype(str)
-                .iloc[0]
-            )
-
-        upload_time = "Unknown"
-        if (
-            "Upload Timestamp" in duplicate_check.columns
-            and
-            not duplicate_check["Upload Timestamp"].dropna().empty
-        ):
-            upload_time = (
-                duplicate_check["Upload Timestamp"]
-                .dropna()
-                .astype(str)
-                .iloc[0]
-            )
-
-        st.error(
-            f"""
-⚠ Marketing Plan Already Exists
-
-Year : {year}
-Month : {month}
-Zone : {zone}
-Brand : {brand}
-
-Uploaded By : {uploaded_by}
-
-Upload Time : {upload_time}
-"""
-        )
-
-        allow_reupload = st.checkbox(
-            "I confirm this upload is intentional"
-        )
-
+        ...
 # ==================================
 # UPLOAD SECTION
 # ==================================
