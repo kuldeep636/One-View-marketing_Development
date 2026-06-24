@@ -59,8 +59,17 @@ def login():
                 st.session_state.user_id = user["User_ID"]
                 st.session_state.name = user["Name"]
                 st.session_state.role = user["Role"]
-                st.session_state.zone_access = str(user["Zone"])
-                st.session_state.brand_access = str(user["Brand"])
+                st.session_state.zone_access = str(
+                user.get("Zone", "All")
+            )
+            
+            st.session_state.brand_access = str(
+                user.get("Brand", "All")
+            )
+            
+            st.session_state.access_mapping = str(
+                user.get("Access Mapping", "")
+            )
 
                 st.rerun()
 
