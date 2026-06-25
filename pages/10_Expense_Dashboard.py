@@ -15,7 +15,11 @@ from utils.access import apply_role_access
 from utils.gsheet import load_expense_data, load_budget_data
 from utils.common_filters import render_common_filters, apply_common_filters
 from utils.sidebar import render_navigation
-from utils.ui import inject_css
+from utils.ui import (
+    inject_css,
+    page_header,
+    metric_card
+)
 from utils.preprocess import preprocess_expense, preprocess_budget
 from utils.formatters import format_value
 
@@ -66,16 +70,10 @@ if filtered_df.empty:
 # ==================================
 # HEADER
 # ==================================
-st.markdown("""
-<h1 style='margin-bottom:0'>
-    💰 EXPENSE DASHBOARD
-</h1>
-<p style='font-size:16px;color:gray'>
-    Landmark Cars Marketing Expense Dashboard
-</p>
-""", unsafe_allow_html=True)
-
-st.divider()
+page_header(
+    "💰 Expense Dashboard",
+    "Landmark Cars Marketing Expense Dashboard"
+)
 
 # ==================================
 # KPI CALCULATIONS
@@ -100,33 +98,39 @@ expense_pct = (net_expense / max(total_budget, 1)) * 100
 # ==================================
 c1, c2, c3, c4, c5 = st.columns(5)
 
-c1.metric(
-    "💰 Total Budget",
-    format_value(total_budget)
-)
+with c1:
+    metric_card(
+        "💰 Total Budget",
+        total_budget
+    )
 
-c2.metric(
-    "💸 Gross Expense",
-    format_value(gross_expense)
-)
+with c2:
+    metric_card(
+        "💸 Gross Expense",
+        gross_expense
+    )
 
-c3.metric(
-    "🤝 OEM Support",
-    format_value(oem_support)
-)
+with c3:
+    metric_card(
+        "🤝 OEM Support",
+        oem_support
+    )
 
-c4.metric(
-    "📉 Net Expense",
-    format_value(net_expense)
-)
+with c4:
+    metric_card(
+        "📉 Net Expense",
+        net_expense
+    )
 
-c5.metric(
-    "📈 Expense % of Budget",
-    f"{expense_pct:.1f}%",
-    delta=f"{expense_pct-100:+.1f}%" if expense_pct != 100 else None
-)
-st.divider()
-
+with c5:
+    metric_card(
+        "📈 Expense % of Budget",
+        expense_pct,
+        delta=f"{expense_pct-100:+.1f}%"
+        if expense_pct != 100
+        else None,
+        is_percent=True
+    )
 # ==================================
 # CHARTS
 # ==================================
