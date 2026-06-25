@@ -1,6 +1,10 @@
 import streamlit as st
+from utils.formatters import format_value
 
 
+# ==========================================
+# GLOBAL CSS
+# ==========================================
 def inject_css():
 
     st.markdown("""
@@ -41,13 +45,13 @@ def inject_css():
     [data-testid="metric-container"] {
         background-color: white;
         border: 1px solid #e6e6e6;
-        padding: 10px;
+        padding: 12px;
         border-radius: 12px;
         box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
     }
 
     /* ==================================
-       SIDEBAR IMPROVEMENT
+       SIDEBAR
        ================================== */
 
     section[data-testid="stSidebar"] {
@@ -55,7 +59,7 @@ def inject_css():
     }
 
     /* ==================================
-       REMOVE EXTRA PAGE LIST SPACING
+       REMOVE EXTRA SPACING
        ================================== */
 
     div[data-testid="stSidebarNav"] + div {
@@ -65,28 +69,108 @@ def inject_css():
     </style>
     """, unsafe_allow_html=True)
 
-c1.metric(
-    "💰 Total Budget",
-    format_value(total_budget)
-)
 
-c2.metric(
-    "💸 Gross Expense",
-    format_value(gross_expense)
-)
+# ==========================================
+# PAGE HEADER
+# ==========================================
+def page_header(title, subtitle=""):
 
-c3.metric(
-    "🤝 OEM Support",
-    format_value(oem_support)
-)
+    st.markdown(
+        f"""
+        <h1 style="margin-bottom:0">
+            {title}
+        </h1>
 
-c4.metric(
-    "📉 Net Expense",
-    format_value(net_expense)
-)
+        <p style="color:gray;font-size:16px;">
+            {subtitle}
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
 
-c5.metric(
-    "📈 Expense % of Budget",
-    f"{expense_pct:.1f}%",
-    delta=f"{expense_pct-100:+.1f}%" if expense_pct != 100 else None
-)
+    st.divider()
+
+
+# ==========================================
+# SECTION HEADER
+# ==========================================
+def section_header(title):
+
+    st.markdown(f"### {title}")
+
+
+# ==========================================
+# KPI CARD
+# ==========================================
+def metric_card(
+    title,
+    value,
+    delta=None,
+    is_percent=False
+):
+
+    if is_percent:
+
+        display_value = (
+            f"{value:.1f}%"
+            if value is not None
+            else "-"
+        )
+
+    else:
+
+        display_value = format_value(value)
+
+    st.metric(
+        label=title,
+        value=display_value,
+        delta=delta
+    )
+
+
+# ==========================================
+# INFO MESSAGE
+# ==========================================
+def info_card(message):
+
+    st.info(message)
+
+
+# ==========================================
+# SUCCESS MESSAGE
+# ==========================================
+def success_card(message):
+
+    st.success(message)
+
+
+# ==========================================
+# WARNING MESSAGE
+# ==========================================
+def warning_card(message):
+
+    st.warning(message)
+
+
+# ==========================================
+# ERROR MESSAGE
+# ==========================================
+def error_card(message):
+
+    st.error(message)
+
+
+# ==========================================
+# EMPTY STATE
+# ==========================================
+def empty_state(message="No Data Available"):
+
+    st.info(message)
+
+
+# ==========================================
+# PAGE DIVIDER
+# ==========================================
+def page_divider():
+
+    st.divider()
