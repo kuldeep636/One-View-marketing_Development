@@ -372,6 +372,22 @@ final_df = final_df[
     ]
 ]
 
+value_cols = [
+    "Budget",
+    "OEM Support",
+    "ATL",
+    "BTL",
+    "DIGITAL",
+    "FLEXY",
+    "Gross Expense",
+    "Net Expense"
+]
+
+final_df, number_formats = get_scaled_columns(
+    final_df,
+    value_cols
+)
+
 # ==================================
 # STYLING
 # ==================================
@@ -422,21 +438,24 @@ styled = (
         axis=1
     )
     .format({
-        "Budget": "{:,.0f}",
-        "OEM Support": "{:,.0f}",
-        "ATL": "{:,.0f}",
-        "BTL": "{:,.0f}",
-        "DIGITAL": "{:,.0f}",
-        "FLEXY": "{:,.0f}",
-        "Gross Expense": "{:,.0f}",
-        "Net Expense": "{:,.0f}",
+        **number_formats,
         "Utilization %": "{:.1f}%"
     })
+)
+
+st.caption(
+    f"Values shown in: {current_unit()}"
 )
 st.dataframe(
     styled,
     use_container_width=True,
-    height=1100
+    height=min(
+        900,
+    max(
+        400,
+        len(final_df) * 35
+    )
+)
 )
 
 st.caption(
