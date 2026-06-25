@@ -353,3 +353,77 @@ with right:
     )
 
 st.divider()
+
+# ==================================
+# TOP 10 BIFURCATIONS
+# ==================================
+
+st.subheader(
+    "🏆 Top 10 Bifurcations by Spend"
+)
+
+top_bif = (
+    df_exp.groupby(
+        "Bifurcation",
+        as_index=False
+    )["AMT(W/o GST)"]
+    .sum()
+    .sort_values(
+        "AMT(W/o GST)",
+        ascending=False
+    )
+    .head(10)
+)
+
+fig3 = px.bar(
+    top_bif,
+    x="AMT(W/o GST)",
+    y="Bifurcation",
+    orientation="h",
+    text_auto=".2s"
+)
+
+fig3.update_layout(
+    height=550,
+    yaxis=dict(
+        categoryorder="total ascending"
+    ),
+    xaxis_title="Expense",
+    yaxis_title=""
+)
+
+st.plotly_chart(
+    fig3,
+    use_container_width=True
+)
+
+# ==================================
+# TOP 10 TABLE
+# ==================================
+
+top_display = top_bif.rename(
+    columns={
+        "AMT(W/o GST)": "Expense"
+    }
+)
+
+top_display, fmt = get_scaled_columns(
+    top_display,
+    ["Expense"]
+)
+
+st.dataframe(
+    top_display.style.format(fmt),
+    use_container_width=True,
+    hide_index=True
+)
+
+st.divider()
+
+st.caption(
+    f"Values shown in : {current_unit()}"
+)
+
+st.caption(
+    "Made By Kuldeep Pal"
+)
