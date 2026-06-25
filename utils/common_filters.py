@@ -7,20 +7,20 @@ from utils.reporting import (
     get_quarters
 )
 
-df = prepare_reporting(df)
+
 # ==================================
 # UNIVERSAL FILTERS
 # ==================================
 
 def render_common_filters(df):
 
+    # ----------------------------------
+    # Prepare Reporting Columns
+    # ----------------------------------
+
+    df = prepare_reporting(df)
+
     st.sidebar.markdown("## 🔍 Filters")
-
-# ==================================
-# PREPARE REPORTING COLUMNS
-# ==================================
-
-df = prepare_reporting(df)
 
     # ==================================
     # RESET FILTERS
@@ -29,7 +29,9 @@ df = prepare_reporting(df)
     if st.sidebar.button("🔄 Reset Filters"):
 
         filter_keys = [
+            "reporting_type",
             "year_filter",
+            "quarter_filter",
             "month_filter",
             "vertical_filter",
             "activity_type_filter",
@@ -48,7 +50,7 @@ df = prepare_reporting(df)
     # ==================================
     # REPORTING TYPE
     # ==================================
-    
+
     reporting_type = st.sidebar.selectbox(
         "📅 Reporting Type",
         [
@@ -58,95 +60,141 @@ df = prepare_reporting(df)
         key="reporting_type"
     )
 
+    # ==================================
+    # YEAR COLUMN
+    # ==================================
 
-# ==================================
-# QUARTER
-# ==================================
+    if reporting_type == "Financial Year":
 
-quarter_column = (
-    "Financial Quarter"
-    if reporting_type == "Financial Year"
-    else "Calendar Quarter"
-)
+        year_column = "Financial Year"
 
-quarter = st.sidebar.selectbox(
-    "Quarter",
-    ["All"] + get_quarters(),
-    key="quarter_filter"
-)
+    else:
 
-quarter_df = year_df.copy()
+        year_column = "Year"
 
-if quarter != "All":
+    # ==================================
+    # YEAR FILTER
+    # ==================================
 
-    quarter_df = quarter_df[
-        quarter_df[quarter_column] == quarter
-    ]   
+    year_list = sorted(
 
-   if filters["year"]:
+        df[year_column]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist()
 
-    year_column = (
-        "Financial Year"
-        if filters["reporting_type"] == "Financial Year"
-        else "Year"
     )
 
-    filtered_df = filtered_df[
-        filtered_df[year_column]
-        .astype(str)
-        .isin(filters["year"])
-    ]
-    if filters["quarter"] != "All":
+    year = st.sidebar.multiselect(
+
+        year_column,
+
+        year_list,
+
+        key="year_filter"
+
+    )
+
+    year_df = df.copy()
+
+    if year:
+
+        year_df = year_df[
+
+            year_df[year_column]
+            .astype(str)
+            .isin(year)
+
+        ]
+
+    # ==================================
+    # QUARTER
+    # ==================================
 
     quarter_column = (
+
         "Financial Quarter"
-        if filters["reporting_type"] == "Financial Year"
+
+        if reporting_type == "Financial Year"
+
         else "Calendar Quarter"
+
     )
 
-    filtered_df = filtered_df[
-        filtered_df[quarter_column] == filters["quarter"]
-    ]
-    
+    quarter = st.sidebar.selectbox(
+
+        "Quarter",
+
+        ["All"] + get_quarters(),
+
+        key="quarter_filter"
+
+    )
+
+    quarter_df = year_df.copy()
+
+    if quarter != "All":
+
+        quarter_df = quarter_df[
+
+            quarter_df[quarter_column] == quarter
+
+        ]
+
     # ==================================
     # MONTH
     # ==================================
 
     month_list = (
-        year_df["Month"]
+
+        quarter_df["Month"]
         .dropna()
         .astype(str)
         .unique()
         .tolist()
+
     )
 
-    try:
+    month_order = get_month_order(
+        reporting_type
+    )
 
-        month_list = sorted(
-            month_list,
-            key=lambda x: pd.to_datetime(x)
-        )
+    month_list = sorted(
 
-    except Exception:
+        month_list,
 
-        month_list = sorted(month_list)
+        key=lambda x:
+
+        month_order.index(x)
+
+        if x in month_order
+
+        else 999
+
+    )
 
     month = st.sidebar.multiselect(
+
         "Month",
+
         month_list,
+
         key="month_filter"
+
     )
 
     month_df = quarter_df.copy()
 
-    month_order = get_month_order(reporting_type)
+    if month:
 
-    month_list = sorted(
-        month_list,
-        key=lambda x: month_order.index(x)
-        if x in month_order
-        else 999
-    )
+        month_df = month_df[
+
+            month_df["Month"]
+            .astype(str)
+            .isin(month)
+
+        ]
 
     # ==================================
     # VERTICAL
@@ -189,10 +237,18 @@ if quarter != "All":
     # ACTIVITY TYPE
     # ==================================
 
+    activity_column = None
+
     if "Activity Type" in vertical_df.columns:
+        activity_column = "Activity Type"
+
+    elif "Activity type" in vertical_df.columns:
+        activity_column = "Activity type"
+
+    if activity_column:
 
         activity_type_list = sorted(
-            vertical_df["Activity Type"]
+            vertical_df[activity_column]
             .dropna()
             .astype(str)
             .unique()
@@ -211,13 +267,10 @@ if quarter != "All":
 
     activity_df = vertical_df.copy()
 
-    if (
-        "Activity Type" in activity_df.columns
-        and activity_type
-    ):
+    if activity_column and activity_type:
 
         activity_df = activity_df[
-            activity_df["Activity Type"]
+            activity_df[activity_column]
             .astype(str)
             .isin(activity_type)
         ]
@@ -226,19 +279,25 @@ if quarter != "All":
     # ZONE
     # ==================================
 
-    zone_list = sorted(
-        activity_df["Zone"]
-        .dropna()
-        .astype(str)
-        .unique()
-        .tolist()
-    )
+    if "Zone" in activity_df.columns:
 
-    zone = st.sidebar.multiselect(
-        "Zone",
-        zone_list,
-        key="zone_filter"
-    )
+        zone_list = sorted(
+            activity_df["Zone"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+
+        zone = st.sidebar.multiselect(
+            "Zone",
+            zone_list,
+            key="zone_filter"
+        )
+
+    else:
+
+        zone = []
 
     zone_df = activity_df.copy()
 
@@ -254,19 +313,25 @@ if quarter != "All":
     # BRAND
     # ==================================
 
-    brand_list = sorted(
-        zone_df["Brand"]
-        .dropna()
-        .astype(str)
-        .unique()
-        .tolist()
-    )
+    if "Brand" in zone_df.columns:
 
-    brand = st.sidebar.multiselect(
-        "Brand",
-        brand_list,
-        key="brand_filter"
-    )
+        brand_list = sorted(
+            zone_df["Brand"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+
+        brand = st.sidebar.multiselect(
+            "Brand",
+            brand_list,
+            key="brand_filter"
+        )
+
+    else:
+
+        brand = []
 
     brand_df = zone_df.copy()
 
@@ -303,18 +368,26 @@ if quarter != "All":
         location = []
 
     return {
+
         "reporting_type": reporting_type,
+
         "year": year,
+
         "quarter": quarter,
+
         "month": month,
+
         "vertical": vertical,
+
         "activity_type": activity_type,
+
         "zone": zone,
+
         "brand": brand,
+
         "location": location
+
     }
-
-
 
 # ==================================
 # APPLY FILTERS
@@ -322,15 +395,49 @@ if quarter != "All":
 
 def apply_common_filters(df, filters):
 
-    filtered_df = df.copy()
+    # ----------------------------------
+    # Prepare Reporting Columns
+    # ----------------------------------
+
+    filtered_df = prepare_reporting(df)
+
+    # ==================================
+    # YEAR
+    # ==================================
 
     if filters["year"]:
 
+        year_column = (
+            "Financial Year"
+            if filters["reporting_type"] == "Financial Year"
+            else "Year"
+        )
+
         filtered_df = filtered_df[
-            filtered_df["Year"]
+            filtered_df[year_column]
             .astype(str)
             .isin(filters["year"])
         ]
+
+    # ==================================
+    # QUARTER
+    # ==================================
+
+    if filters["quarter"] != "All":
+
+        quarter_column = (
+            "Financial Quarter"
+            if filters["reporting_type"] == "Financial Year"
+            else "Calendar Quarter"
+        )
+
+        filtered_df = filtered_df[
+            filtered_df[quarter_column] == filters["quarter"]
+        ]
+
+    # ==================================
+    # MONTH
+    # ==================================
 
     if filters["month"]:
 
@@ -339,6 +446,10 @@ def apply_common_filters(df, filters):
             .astype(str)
             .isin(filters["month"])
         ]
+
+    # ==================================
+    # VERTICAL
+    # ==================================
 
     if (
         "Vertical" in filtered_df.columns
@@ -351,16 +462,32 @@ def apply_common_filters(df, filters):
             .isin(filters["vertical"])
         ]
 
+    # ==================================
+    # ACTIVITY TYPE
+    # ==================================
+
+    activity_column = None
+
+    if "Activity Type" in filtered_df.columns:
+        activity_column = "Activity Type"
+
+    elif "Activity type" in filtered_df.columns:
+        activity_column = "Activity type"
+
     if (
-        "Activity Type" in filtered_df.columns
+        activity_column
         and filters["activity_type"]
     ):
 
         filtered_df = filtered_df[
-            filtered_df["Activity Type"]
+            filtered_df[activity_column]
             .astype(str)
             .isin(filters["activity_type"])
         ]
+
+    # ==================================
+    # ZONE
+    # ==================================
 
     if filters["zone"]:
 
@@ -370,6 +497,10 @@ def apply_common_filters(df, filters):
             .isin(filters["zone"])
         ]
 
+    # ==================================
+    # BRAND
+    # ==================================
+
     if filters["brand"]:
 
         filtered_df = filtered_df[
@@ -377,6 +508,10 @@ def apply_common_filters(df, filters):
             .astype(str)
             .isin(filters["brand"])
         ]
+
+    # ==================================
+    # LOCATION
+    # ==================================
 
     if (
         "Location" in filtered_df.columns
