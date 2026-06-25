@@ -30,7 +30,16 @@ from utils.common_filters import (
     apply_common_filters
 )
 
-from utils.ui import inject_css
+from utils.ui import (
+    inject_css,
+    page_header,
+    metric_card
+)
+
+from utils.formatters import (
+    get_scaled_columns,
+    current_unit
+)
 
 # ==================================
 # PAGE CONFIG
@@ -125,15 +134,10 @@ if df_budget.empty:
 # HEADER
 # ==================================
 
-st.markdown("""
-<h1 style='margin-bottom:0'>
-📗 BRAND WISE MIS SUMMARY
-</h1>
-
-<p style='font-size:16px;color:gray'>
-Brand → Zone | Budget vs Expenses
-</p>
-""", unsafe_allow_html=True)
+page_header(
+    "🚗 Brand Wise MIS Summary",
+    "Brand → Zone | Budget vs Expenses"
+)
 
 # ==================================
 # KPI SNAPSHOT
@@ -154,33 +158,36 @@ expense_pct = (
 
 c1, c2, c3, c4, c5 = st.columns(5)
 
-c1.metric(
-    "💰 Total Budget",
-    f"₹ {total_budget:,.0f}"
-)
+with c1:
+    metric_card(
+        "💰 Total Budget",
+        total_budget
+    )
 
-c2.metric(
-    "💸 Gross Expense",
-    f"₹ {gross_expense:,.0f}"
-)
+with c2:
+    metric_card(
+        "💸 Gross Expense",
+        gross_expense
+    )
 
-c3.metric(
-    "🤝 OEM Support",
-    f"₹ {oem_support:,.0f}"
-)
+with c3:
+    metric_card(
+        "🤝 OEM Support",
+        oem_support
+    )
 
-c4.metric(
-    "📉 Net Expense",
-    f"₹ {net_expense:,.0f}"
-)
+with c4:
+    metric_card(
+        "📉 Net Expense",
+        net_expense
+    )
 
-c5.metric(
-    "📈 Expense %",
-    f"{expense_pct:.1f}%"
-)
-
-st.divider()
-
+with c5:
+    metric_card(
+        "📈 Expense %",
+        expense_pct,
+        is_percent=True
+    )
 # ==================================
 # ACTIVITY SPLIT
 # ==================================
