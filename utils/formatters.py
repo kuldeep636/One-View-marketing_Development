@@ -108,3 +108,26 @@ def current_unit():
         return "₹"
 
     return f"₹ ({suffix})"
+
+
+
+# ==========================================
+# GLOBAL FORMATTER
+# ==========================================
+
+def get_scaled_columns(df, columns):
+
+    df = scale_dataframe(df, columns)
+
+    _, suffix = get_scale_factor()
+
+    formats = {}
+
+    for col in columns:
+
+        if suffix == "":
+            formats[col] = "{:,.0f}"
+        else:
+            formats[col] = "{:,.2f}"
+
+    return df, formats
