@@ -211,26 +211,14 @@ activity_df["Share %"] = (
     * 100
 ).round(1)
 
-# ==================================
-# ACTIVITY SELECTOR
-# ==================================
 
-selected_activity = st.radio(
-    "🎯 Activity Type",
-    activity_df["Activity type"].tolist(),
-    horizontal=True
-)
 
 # ==================================
 # BIFURCATION BREAKDOWN
 # ==================================
 
 bif_df = (
-    df_exp[
-        df_exp["Activity type"]
-        == selected_activity
-    ]
-    .groupby(
+    df_exp.groupby(
         "Bifurcation",
         as_index=False
     )["AMT(W/o GST)"]
@@ -265,8 +253,8 @@ left, right = st.columns(2)
 with left:
 
     st.subheader(
-        "📊 Activity Type Contribution"
-    )
+        "📑 Bifurcation Distribution"
+)
 
     fig1 = px.bar(
         activity_df,
