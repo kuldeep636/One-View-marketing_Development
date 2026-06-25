@@ -1,7 +1,13 @@
 import streamlit as st
 import pandas as pd
 
+from utils.reporting import (
+    prepare_reporting,
+    get_month_order,
+    get_quarters
+)
 
+df = prepare_reporting(df)
 # ==================================
 # UNIVERSAL FILTERS
 # ==================================
@@ -9,6 +15,12 @@ import pandas as pd
 def render_common_filters(df):
 
     st.sidebar.markdown("## 🔍 Filters")
+
+# ==================================
+# PREPARE REPORTING COLUMNS
+# ==================================
+
+df = prepare_reporting(df)
 
     # ==================================
     # RESET FILTERS
@@ -34,33 +46,68 @@ def render_common_filters(df):
         st.rerun()
 
     # ==================================
-    # YEAR
+    # REPORTING TYPE
     # ==================================
+    
+    reporting_type = st.sidebar.selectbox(
+        "📅 Reporting Type",
+        [
+            "Calendar Year",
+            "Financial Year"
+        ],
+        key="reporting_type"
+    )
 
-    year_list = sorted(
-        df["Year"]
-        .dropna()
+
+# ==================================
+# QUARTER
+# ==================================
+
+quarter_column = (
+    "Financial Quarter"
+    if reporting_type == "Financial Year"
+    else "Calendar Quarter"
+)
+
+quarter = st.sidebar.selectbox(
+    "Quarter",
+    ["All"] + get_quarters(),
+    key="quarter_filter"
+)
+
+quarter_df = year_df.copy()
+
+if quarter != "All":
+
+    quarter_df = quarter_df[
+        quarter_df[quarter_column] == quarter
+    ]   
+
+   if filters["year"]:
+
+    year_column = (
+        "Financial Year"
+        if filters["reporting_type"] == "Financial Year"
+        else "Year"
+    )
+
+    filtered_df = filtered_df[
+        filtered_df[year_column]
         .astype(str)
-        .unique()
-        .tolist()
+        .isin(filters["year"])
+    ]
+    if filters["quarter"] != "All":
+
+    quarter_column = (
+        "Financial Quarter"
+        if filters["reporting_type"] == "Financial Year"
+        else "Calendar Quarter"
     )
 
-    year = st.sidebar.multiselect(
-        "Year",
-        year_list,
-        key="year_filter"
-    )
-
-    year_df = df.copy()
-
-    if year:
-
-        year_df = year_df[
-            year_df["Year"]
-            .astype(str)
-            .isin(year)
-        ]
-
+    filtered_df = filtered_df[
+        filtered_df[quarter_column] == filters["quarter"]
+    ]
+    
     # ==================================
     # MONTH
     # ==================================
@@ -90,15 +137,16 @@ def render_common_filters(df):
         key="month_filter"
     )
 
-    month_df = year_df.copy()
+    month_df = quarter_df.copy()
 
-    if month:
+    month_order = get_month_order(reporting_type)
 
-        month_df = month_df[
-            month_df["Month"]
-            .astype(str)
-            .isin(month)
-        ]
+    month_list = sorted(
+        month_list,
+        key=lambda x: month_order.index(x)
+        if x in month_order
+        else 999
+    )
 
     # ==================================
     # VERTICAL
@@ -255,7 +303,9 @@ def render_common_filters(df):
         location = []
 
     return {
+        "reporting_type": reporting_type,
         "year": year,
+        "quarter": quarter,
         "month": month,
         "vertical": vertical,
         "activity_type": activity_type,
@@ -263,6 +313,7 @@ def render_common_filters(df):
         "brand": brand,
         "location": location
     }
+
 
 
 # ==================================
