@@ -1,5 +1,14 @@
 import pandas as pd
+def preprocess_expense(df):
 
+    # Normalize Activity Type column
+    if "Activity type" in df.columns:
+        df.rename(
+            columns={"Activity type": "Activity Type"},
+            inplace=True
+        )
+
+    # Continue with existing preprocessing...
 
 def preprocess_expense(df):
 
