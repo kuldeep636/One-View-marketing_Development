@@ -64,3 +64,29 @@ def inject_css():
 
     </style>
     """, unsafe_allow_html=True)
+
+c1.metric(
+    "💰 Total Budget",
+    format_value(total_budget)
+)
+
+c2.metric(
+    "💸 Gross Expense",
+    format_value(gross_expense)
+)
+
+c3.metric(
+    "🤝 OEM Support",
+    format_value(oem_support)
+)
+
+c4.metric(
+    "📉 Net Expense",
+    format_value(net_expense)
+)
+
+c5.metric(
+    "📈 Expense % of Budget",
+    f"{expense_pct:.1f}%",
+    delta=f"{expense_pct-100:+.1f}%" if expense_pct != 100 else None
+)
