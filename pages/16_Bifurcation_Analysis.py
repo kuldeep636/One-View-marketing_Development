@@ -9,9 +9,9 @@ if not st.session_state.get(
     )
     st.stop()
 
-from utils.access import apply_role_access
-
 import plotly.express as px
+
+from utils.access import apply_role_access
 
 from utils.gsheet import (
     load_expense_data,
@@ -71,7 +71,7 @@ try:
 except Exception as e:
 
     st.error(
-        f"Error Loading Data: {e}"
+        f"Error Loading Data : {e}"
     )
 
     st.stop()
@@ -105,15 +105,16 @@ if df_exp.empty:
     st.stop()
 
 # ==================================
-# HEADER
+# PAGE HEADER
 # ==================================
 
 page_header(
     "📑 Bifurcation Analysis",
-    "Marketing Expense Analysis by Activity Type"
+    "Marketing Expense Analysis by Activity Type & Bifurcation"
 )
+
 # ==================================
-# KPI CARDS
+# KPI CALCULATIONS
 # ==================================
 
 gross_expense = (
@@ -143,38 +144,49 @@ expense_pct = (
     max(total_budget, 1)
 ) * 100
 
+# ==================================
+# KPI CARDS
+# ==================================
+
 c1, c2, c3, c4, c5 = st.columns(5)
 
 with c1:
+
     metric_card(
         "💰 Total Budget",
         total_budget
     )
 
 with c2:
+
     metric_card(
         "💸 Gross Expense",
         gross_expense
     )
 
 with c3:
+
     metric_card(
         "🤝 OEM Support",
         oem_support
     )
 
 with c4:
+
     metric_card(
         "📉 Net Expense",
         net_expense
     )
 
 with c5:
+
     metric_card(
         "📈 Utilization",
         expense_pct,
         is_percent=True
-    )st.divider()
+    )
+
+st.divider()
 
 # ==================================
 # ACTIVITY TYPE CONTRIBUTION
