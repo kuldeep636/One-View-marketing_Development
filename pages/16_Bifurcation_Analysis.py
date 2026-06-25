@@ -198,6 +198,10 @@ activity_df = (
         as_index=False
     )["AMT(W/o GST)"]
     .sum()
+    .sort_values(
+        "AMT(W/o GST)",
+        ascending=False
+    )
 )
 
 activity_df["Share %"] = (
@@ -244,47 +248,19 @@ bif_df["Share %"] = (
     * 100
 ).round(1)
 
-# ==================================
-# DONUT CHARTS
-# ==================================
-
-fig1 = px.pie(
-    activity_df,
-    names="Activity type",
-    values="AMT(W/o GST)",
-    hole=0.65
-)
-
-fig1.update_traces(
-    textinfo="percent+label"
-)
-
-fig1.update_layout(
-    height=500,
-    showlegend=True
-)
-
-fig2 = px.pie(
-    bif_df,
-    names="Bifurcation",
-    values="AMT(W/o GST)",
-    hole=0.65
-)
-
-fig2.update_traces(
-    textinfo="percent+label"
-)
-
-fig2.update_layout(
-    height=500,
-    showlegend=True
+st.caption(
+    f"Values shown in : {current_unit()}"
 )
 
 # ==================================
-# DISPLAY CHARTS
+# CHARTS
 # ==================================
 
 left, right = st.columns(2)
+
+# ----------------------------------
+# ACTIVITY TYPE
+# ----------------------------------
 
 with left:
 
@@ -292,34 +268,66 @@ with left:
         "📊 Activity Type Contribution"
     )
 
+    fig1 = px.bar(
+        activity_df,
+        x="AMT(W/o GST)",
+        y="Activity type",
+        orientation="h",
+        text_auto=".2s"
+    )
+
+    fig1.update_layout(
+        height=500,
+        yaxis=dict(
+            categoryorder="total ascending"
+        )
+    )
+
     st.plotly_chart(
         fig1,
         use_container_width=True
     )
 
-      display_activity = activity_df.rename(
+    display_activity = activity_df.rename(
         columns={
             "AMT(W/o GST)": "Expense"
         }
     )
-    
+
     display_activity, fmt = get_scaled_columns(
         display_activity,
         ["Expense"]
     )
-            }
-    )
 
     st.dataframe(
-        display_activity,
+        display_activity.style.format(fmt),
         use_container_width=True,
         hide_index=True
     )
+
+# ----------------------------------
+# BIFURCATION
+# ----------------------------------
 
 with right:
 
     st.subheader(
         f"📑 {selected_activity} Breakdown"
+    )
+
+    fig2 = px.pie(
+        bif_df,
+        names="Bifurcation",
+        values="AMT(W/o GST)",
+        hole=.60
+    )
+
+    fig2.update_traces(
+        textinfo="percent+label"
+    )
+
+    fig2.update_layout(
+        height=500
     )
 
     st.plotly_chart(
@@ -333,56 +341,15 @@ with right:
         }
     )
 
-    st.dataframe(
+    display_bif, fmt = get_scaled_columns(
         display_bif,
+        ["Expense"]
+    )
+
+    st.dataframe(
+        display_bif.style.format(fmt),
         use_container_width=True,
         hide_index=True
     )
 
-# ==================================
-# TOP 10 BIFURCATIONS
-# ==================================
-
 st.divider()
-
-st.subheader(
-    "🏆 Top 10 Bifurcations by Spend"
-)
-
-top_bif = (
-    df_exp.groupby(
-        "Bifurcation"
-    )["AMT(W/o GST)"]
-    .sum()
-    .sort_values(
-        ascending=False
-    )
-    .head(10)
-    .reset_index()
-)
-
-fig3 = px.bar(
-    top_bif,
-    x="AMT(W/o GST)",
-    y="Bifurcation",
-    orientation="h",
-    text_auto=".2s"
-)
-
-fig3.update_layout(
-    height=500,
-    yaxis=dict(
-        categoryorder="total ascending"
-    )
-)
-
-st.plotly_chart(
-    fig3,
-    use_container_width=True
-)
-
-st.divider()
-
-st.caption(
-    "Made By Kuldeep Pal"
-)
