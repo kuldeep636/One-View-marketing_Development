@@ -62,8 +62,66 @@ render_navigation()
 filters = render_common_filters(df_budget)
 
 df_budget = apply_common_filters(df_budget, filters)
-df_exp = apply_common_filters(df_exp, filters)
+# ==================================
+# MASTER BIFURCATION DATA
+# ==================================
 
+bif_df = (
+    df_exp.groupby(
+        [
+            "Zone",
+            "Brand",
+            "Activity type",
+            "Bifurcation"
+        ],
+        as_index=False
+    )["AMT(W/o GST)"]
+    .sum()
+)
+
+bif_df.rename(
+    columns={
+        "AMT(W/o GST)": "Expense"
+    },
+    inplace=True
+)
+
+# ==================================
+# TOTALS
+# ==================================
+
+overall_total = (
+    bif_df["Expense"]
+    .sum()
+)
+
+activity_total = (
+    bif_df.groupby(
+        [
+            "Zone",
+            "Brand",
+            "Activity type"
+        ]
+    )["Expense"]
+    .transform("sum")
+)
+
+brand_total = (
+    bif_df.groupby(
+        [
+            "Zone",
+            "Brand"
+        ]
+    )["Expense"]
+    .transform("sum")
+)
+
+zone_total = (
+    bif_df.groupby(
+        "Zone"
+    )["Expense"]
+    .transform("sum")
+)
 if df_exp.empty:
     st.info("No data available for selected filters.")
     st.stop()
