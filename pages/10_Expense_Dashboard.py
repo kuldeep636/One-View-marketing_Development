@@ -17,6 +17,7 @@ from utils.common_filters import render_common_filters, apply_common_filters
 from utils.sidebar import render_navigation
 from utils.ui import inject_css
 from utils.preprocess import preprocess_expense, preprocess_budget
+from utils.formatters import format_value
 
 # ==================================
 # PAGE CONFIG
