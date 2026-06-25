@@ -99,7 +99,7 @@ expense_pct = (net_expense / max(total_budget, 1)) * 100
 # ==================================
 c1, c2, c3, c4, c5 = st.columns(5)
 
-c1.metric("💰 Total Budget", f"₹ {total_budget:,.0f}")
+c1.metric("💰 Total Budget", format_value(total_budget)
 c2.metric("💸 Gross Expense", f"₹ {gross_expense:,.0f}")
 c3.metric("🤝 OEM Support", f"₹ {oem_support:,.0f}")
 c4.metric("📉 Net Expense", f"₹ {net_expense:,.0f}")
