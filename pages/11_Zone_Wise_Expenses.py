@@ -445,6 +445,11 @@ styled = (
         "Utilization %": "{:.1f}%"
     })
 )
+from utils.formatters import current_unit
+
+st.caption(
+    f"Values shown in: {current_unit()}"
+)
 
 st.dataframe(
     styled,
