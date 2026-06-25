@@ -16,7 +16,30 @@ def render_navigation():
         st.caption(
             f"🎯 {st.session_state.get('role', '')}"
         )
+        # ==================================
+        # GLOBAL SETTINGS
+        # ==================================
+        
+        st.markdown("---")
+        
+        if "value_scale" not in st.session_state:
+            st.session_state.value_scale = "Lakhs"
+        
+        st.selectbox(
+            "💰 Display Values In",
+            [
+                "Numbers",
+                "Thousands",
+                "Lakhs",
+                "Crores"
+            ],
+            key="value_scale"
+        )
+        
+        st.markdown("---")
 
+
+        
         # ==================================
         # MARKETING PLAN MENU
         # ==================================
