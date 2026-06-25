@@ -83,7 +83,6 @@ gross_expense = df_exp["AMT(W/o GST)"].sum()
 oem_support = df_exp["OEM Support"].sum()
 net_expense = gross_expense - oem_support
 total_budget = df_budget["Budget"].sum()
-
 expense_pct = (net_expense / max(total_budget, 1)) * 100
 
 # ==================================
@@ -238,5 +237,73 @@ with st.expander("📋 View Top 10 Details", expanded=False):
     )
 
 st.divider()
+
+# ==================================
+# ZONE & BRAND ANALYSIS
+# ==================================
+zone_df = (
+    df_exp.groupby("Zone", as_index=False)["AMT(W/o GST)"]
+    .sum()
+    .sort_values("AMT(W/o GST)", ascending=False)
+)
+
+brand_df = (
+    df_exp.groupby("Brand", as_index=False)["AMT(W/o GST)"]
+    .sum()
+    .sort_values("AMT(W/o GST)", ascending=False)
+)
+
+left, right = st.columns(2)
+
+with left:
+    st.subheader("📍 Zone Wise Expense")
+    fig_zone = px.bar(
+        zone_df,
+        x="AMT(W/o GST)",
+        y="Zone",
+        orientation="h",
+        text_auto=".2s"
+    )
+    fig_zone.update_layout(
+        height=450,
+        yaxis=dict(categoryorder="total ascending")
+    )
+    st.plotly_chart(fig_zone, use_container_width=True)
+
+    zone_display = zone_df.rename(columns={"AMT(W/o GST)": "Expense"})
+    zone_display, fmt = get_scaled_columns(zone_display, ["Expense"])
+
+    with st.expander("📋 View Zone Details", expanded=False):
+        st.dataframe(
+            zone_display.style.format(fmt),
+            use_container_width=True,
+            hide_index=True
+        )
+
+with right:
+    st.subheader("🚗 Brand Wise Expense")
+    fig_brand = px.bar(
+        brand_df,
+        x="AMT(W/o GST)",
+        y="Brand",
+        orientation="h",
+        text_auto=".2s"
+    )
+    fig_brand.update_layout(
+        height=450,
+        yaxis=dict(categoryorder="total ascending")
+    )
+    st.plotly_chart(fig_brand, use_container_width=True)
+
+    brand_display = brand_df.rename(columns={"AMT(W/o GST)": "Expense"})
+    brand_display, fmt = get_scaled_columns(brand_display, ["Expense"])
+
+    with st.expander("📋 View Brand Details", expanded=False):
+        st.dataframe(
+            brand_display.style.format(fmt),
+            use_container_width=True,
+            hide_index=True
+        )
+
 st.caption(f"Values shown in : {current_unit()}")
 st.caption("Made By Kuldeep Pal")
