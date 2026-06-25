@@ -5,6 +5,7 @@ from utils.formatters import format_value
 # ==========================================
 # GLOBAL CSS
 # ==========================================
+
 def inject_css():
 
     st.markdown("""
@@ -68,3 +69,48 @@ def inject_css():
 
     </style>
     """, unsafe_allow_html=True)
+
+
+# ==========================================
+# PAGE HEADER
+# ==========================================
+
+def page_header(title, subtitle=""):
+
+    st.markdown(
+        f"""
+        <h1 style="margin-bottom:0">
+            {title}
+        </h1>
+
+        <p style="font-size:16px;color:gray">
+            {subtitle}
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.divider()
+
+
+# ==========================================
+# KPI CARD
+# ==========================================
+
+def metric_card(
+    title,
+    value,
+    is_percent=False,
+    delta=None
+):
+
+    if is_percent:
+        display_value = f"{value:.1f}%"
+    else:
+        display_value = format_value(value)
+
+    st.metric(
+        label=title,
+        value=display_value,
+        delta=delta
+    )
