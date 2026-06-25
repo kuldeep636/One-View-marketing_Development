@@ -253,7 +253,7 @@ left, right = st.columns(2)
 with left:
 
     st.subheader(
-        "📑 Bifurcation Distribution"
+        "📊 Activity Type Distribution"
 )
 
     fig1 = px.bar(
@@ -287,6 +287,10 @@ with left:
         ["Expense"]
     )
 
+    with st.expander(
+    "📋 View Activity Details",
+    expanded=False
+):
     st.dataframe(
         display_activity.style.format(fmt),
         use_container_width=True,
@@ -300,8 +304,8 @@ with left:
 with right:
 
     st.subheader(
-        f"📑 {selected_activity} Breakdown"
-    )
+        "📑 Bifurcation Distribution"
+)
 
     fig2 = px.pie(
         bif_df,
@@ -334,6 +338,10 @@ with right:
         ["Expense"]
     )
 
+    with st.expander(
+    "📋 View Bifurcation Details",
+    expanded=False
+):
     st.dataframe(
         display_bif.style.format(fmt),
         use_container_width=True,
@@ -400,11 +408,15 @@ top_display, fmt = get_scaled_columns(
     ["Expense"]
 )
 
-st.dataframe(
-    top_display.style.format(fmt),
-    use_container_width=True,
-    hide_index=True
-)
+with st.expander(
+    "📋 View Top 10 Details",
+    expanded=False
+):
+    st.dataframe(
+        top_display.style.format(fmt),
+        use_container_width=True,
+        hide_index=True
+    )
 
 st.divider()
 
