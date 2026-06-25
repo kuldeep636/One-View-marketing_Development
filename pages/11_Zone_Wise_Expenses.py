@@ -1,6 +1,10 @@
 import streamlit as st
 from utils.access import apply_role_access
 
+from utils.formatters import (
+    get_scaled_columns
+)
+
 if not st.session_state.get(
     "logged_in",
     False
@@ -365,6 +369,25 @@ final_df = final_df[
     ]
 ]
 
+
+value_cols = [
+    "Budget",
+    "OEM Support",
+    "ATL",
+    "BTL",
+    "DIGITAL",
+    "FLEXY",
+    "Gross Expense",
+    "Net Expense"
+]
+
+final_df, number_formats = get_scaled_columns(
+    final_df,
+    value_cols
+)
+
+
+
 # ==================================
 # STYLING
 # ==================================
@@ -416,15 +439,9 @@ styled = (
         zone_total_style,
         axis=1
     )
+    
     .format({
-        "Budget": "{:,.0f}",
-        "OEM Support": "{:,.0f}",
-        "ATL": "{:,.0f}",
-        "BTL": "{:,.0f}",
-        "DIGITAL": "{:,.0f}",
-        "FLEXY": "{:,.0f}",
-        "Gross Expense": "{:,.0f}",
-        "Net Expense": "{:,.0f}",
+        **number_formats,
         "Utilization %": "{:.1f}%"
     })
 )
