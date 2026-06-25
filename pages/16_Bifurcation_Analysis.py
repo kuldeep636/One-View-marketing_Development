@@ -63,10 +63,10 @@ filters = render_common_filters(df_budget)
 
 df_budget = apply_common_filters(df_budget, filters)
 # ==================================
-# MASTER BIFURCATION DATA
+# MASTER BIFURCATION DATASET
 # ==================================
 
-bif_df = (
+bif_master = (
     df_exp.groupby(
         [
             "Zone",
@@ -79,7 +79,7 @@ bif_df = (
     .sum()
 )
 
-bif_df.rename(
+bif_master.rename(
     columns={
         "AMT(W/o GST)": "Expense"
     },
@@ -91,12 +91,12 @@ bif_df.rename(
 # ==================================
 
 overall_total = (
-    bif_df["Expense"]
+    bif_master["Expense"]
     .sum()
 )
 
 activity_total = (
-    bif_df.groupby(
+    bif_master.groupby(
         [
             "Zone",
             "Brand",
@@ -107,7 +107,7 @@ activity_total = (
 )
 
 brand_total = (
-    bif_df.groupby(
+    bif_master.groupby(
         [
             "Zone",
             "Brand"
@@ -117,11 +117,82 @@ brand_total = (
 )
 
 zone_total = (
-    bif_df.groupby(
+    bif_master.groupby(
         "Zone"
     )["Expense"]
     .transform("sum")
 )
+
+# ==================================
+# PERCENTAGES
+# ==================================
+
+bif_master["% of Activity"] = (
+    (
+        bif_master["Expense"]
+        /
+        activity_total
+    ) * 100
+).round(1)
+
+bif_master["% of Brand"] = (
+    (
+        bif_master["Expense"]
+        /
+        brand_total
+    ) * 100
+).round(1)
+
+bif_master["% of Zone"] = (
+    (
+        bif_master["Expense"]
+        /
+        zone_total
+    ) * 100
+).round(1)
+
+bif_master["% of Total"] = (
+    (
+        bif_master["Expense"]
+        /
+        overall_total
+    ) * 100
+).round(1)
+
+# ==================================
+# SORT DATA
+# ==================================
+
+bif_master = bif_master.sort_values(
+    [
+        "Zone",
+        "Brand",
+        "Activity type",
+        "Expense"
+    ],
+    ascending=[
+        True,
+        True,
+        True,
+        False
+    ]
+).reset_index(drop=True)
+
+# ==================================
+# DISPLAY MASTER DATASET
+# (Temporary - Remove Later)
+# ==================================
+
+st.subheader("📊 Master Bifurcation Dataset")
+
+st.dataframe(
+    bif_master,
+    use_container_width=True,
+    hide_index=True
+)
+
+
+
 if df_exp.empty:
     st.info("No data available for selected filters.")
     st.stop()
