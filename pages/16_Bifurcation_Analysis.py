@@ -30,7 +30,16 @@ from utils.common_filters import (
     apply_common_filters
 )
 
-from utils.ui import inject_css
+from utils.ui import (
+    inject_css,
+    page_header,
+    metric_card
+)
+
+from utils.formatters import (
+    get_scaled_columns,
+    current_unit
+)
 
 # ==================================
 # PAGE CONFIG
@@ -99,18 +108,10 @@ if df_exp.empty:
 # HEADER
 # ==================================
 
-st.markdown("""
-<h1 style='margin-bottom:0'>
-📑 BIFURCATION ANALYSIS
-</h1>
-
-<p style='font-size:16px;color:gray'>
-Brand → Activity type → Bifurcation
-</p>
-""", unsafe_allow_html=True)
-
-st.divider()
-
+page_header(
+    "📑 Bifurcation Analysis",
+    "Marketing Expense Analysis by Activity Type"
+)
 # ==================================
 # KPI CARDS
 # ==================================
@@ -144,32 +145,36 @@ expense_pct = (
 
 c1, c2, c3, c4, c5 = st.columns(5)
 
-c1.metric(
-    "💰 Total Budget",
-    f"₹ {total_budget:,.0f}"
-)
+with c1:
+    metric_card(
+        "💰 Total Budget",
+        total_budget
+    )
 
-c2.metric(
-    "💸 Gross Expense",
-    f"₹ {gross_expense:,.0f}"
-)
+with c2:
+    metric_card(
+        "💸 Gross Expense",
+        gross_expense
+    )
 
-c3.metric(
-    "🤝 OEM Support",
-    f"₹ {oem_support:,.0f}"
-)
+with c3:
+    metric_card(
+        "🤝 OEM Support",
+        oem_support
+    )
 
-c4.metric(
-    "📉 Net Expense",
-    f"₹ {net_expense:,.0f}"
-)
+with c4:
+    metric_card(
+        "📉 Net Expense",
+        net_expense
+    )
 
-c5.metric(
-    "📈 Expense %",
-    f"{expense_pct:.1f}%"
-)
-
-st.divider()
+with c5:
+    metric_card(
+        "📈 Utilization",
+        expense_pct,
+        is_percent=True
+    )st.divider()
 
 # ==================================
 # ACTIVITY TYPE CONTRIBUTION
@@ -280,10 +285,17 @@ with left:
         use_container_width=True
     )
 
-    display_activity = activity_df.rename(
+      display_activity = activity_df.rename(
         columns={
             "AMT(W/o GST)": "Expense"
         }
+    )
+    
+    display_activity, fmt = get_scaled_columns(
+        display_activity,
+        ["Expense"]
+    )
+            }
     )
 
     st.dataframe(
