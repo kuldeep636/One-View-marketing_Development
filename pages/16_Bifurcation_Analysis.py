@@ -60,8 +60,10 @@ except Exception as e:
 render_navigation()
 
 filters = render_common_filters(df_budget)
-
-df_budget = apply_common_filters(df_budget, filters)
+df_exp = apply_common_filters(
+    df_exp,
+    filters
+)
 # ==================================
 # MASTER BIFURCATION DATASET
 # ==================================
