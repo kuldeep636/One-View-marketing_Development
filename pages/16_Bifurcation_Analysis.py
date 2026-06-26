@@ -233,206 +233,67 @@ with c5:
 st.divider()
 
 # ==================================
-# ACTIVITY TYPE CONTRIBUTION
+# ACTIVITY SUMMARY
 # ==================================
-activity_df = (
-    df_exp.groupby("Activity type", as_index=False)["AMT(W/o GST)"]
+
+activity_summary = (
+    df_exp.groupby(
+        "Activity type",
+        as_index=False
+    )["AMT(W/o GST)"]
     .sum()
-    .sort_values("AMT(W/o GST)", ascending=False)
 )
 
-activity_df["Share %"] = (
-    activity_df["AMT(W/o GST)"] / activity_df["AMT(W/o GST)"].sum() * 100
-).round(1)
-
-# ==================================
-# BIFURCATION BREAKDOWN
-# ==================================
-bif_df = (
-    df_exp.groupby("Bifurcation", as_index=False)["AMT(W/o GST)"]
-    .sum()
-    .sort_values("AMT(W/o GST)", ascending=False)
+activity_summary.rename(
+    columns={
+        "AMT(W/o GST)": "Expense"
+    },
+    inplace=True
 )
 
-bif_df["Share %"] = (
-    bif_df["AMT(W/o GST)"] / bif_df["AMT(W/o GST)"].sum() * 100
+activity_summary["% of Total"] = (
+    activity_summary["Expense"]
+    /
+    activity_summary["Expense"].sum()
+    * 100
 ).round(1)
 
-st.caption(f"Values shown in : {current_unit()}")
+activity_summary = activity_summary.sort_values(
+    "Expense",
+    ascending=False
+)
 
 # ==================================
-# CHARTS
+# TOP BIFURCATIONS
 # ==================================
-left, right = st.columns(2)
-
-# ----------------------------------
-# ACTIVITY TYPE
-# ----------------------------------
-with left:
-    st.subheader("📊 Activity Type Distribution")
-    fig1 = px.bar(
-        activity_df,
-        x="AMT(W/o GST)",
-        y="Activity type",
-        orientation="h",
-        text_auto=".2s"
-    )
-    fig1.update_layout(
-        height=500,
-        yaxis=dict(categoryorder="total ascending")
-    )
-    st.plotly_chart(fig1, use_container_width=True)
-
-    display_activity = activity_df.rename(
-        columns={"AMT(W/o GST)": "Expense"}
-    )
-    display_activity, fmt = get_scaled_columns(display_activity, ["Expense"])
-
-    with st.expander("📋 View Activity Details", expanded=False):
-        st.dataframe(
-            display_activity.style.format(fmt),
-            use_container_width=True,
-            hide_index=True
-        )
-
-# ----------------------------------
-# BIFURCATION
-# ----------------------------------
-with right:
-    st.subheader("📑 Bifurcation Distribution")
-    fig2 = px.pie(
-        bif_df,
-        names="Bifurcation",
-        values="AMT(W/o GST)",
-        hole=0.60
-    )
-    fig2.update_traces(textinfo="percent+label")
-    fig2.update_layout(height=500)
-
-    st.plotly_chart(fig2, use_container_width=True)
-
-    display_bif = bif_df.rename(columns={"AMT(W/o GST)": "Expense"})
-    display_bif, fmt = get_scaled_columns(display_bif, ["Expense"])
-
-    with st.expander("📋 View Bifurcation Details", expanded=False):
-        st.dataframe(
-            display_bif.style.format(fmt),
-            use_container_width=True,
-            hide_index=True
-        )
-
-st.divider()
-
-# ==================================
-# TOP 10 BIFURCATIONS
-# ==================================
-st.subheader("🏆 Top 10 Bifurcations by Spend")
 
 top_bif = (
-    df_exp.groupby("Bifurcation", as_index=False)["AMT(W/o GST)"]
+    df_exp.groupby(
+        "Bifurcation",
+        as_index=False
+    )["AMT(W/o GST)"]
     .sum()
-    .sort_values("AMT(W/o GST)", ascending=False)
-    .head(10)
 )
 
-fig3 = px.bar(
-    top_bif,
-    x="AMT(W/o GST)",
-    y="Bifurcation",
-    orientation="h",
-    text_auto=".2s"
+top_bif.rename(
+    columns={
+        "AMT(W/o GST)": "Expense"
+    },
+    inplace=True
 )
 
-fig3.update_layout(
-    height=550,
-    yaxis=dict(categoryorder="total ascending"),
-    xaxis_title="Expense",
-    yaxis_title=""
-)
+top_bif["% of Total"] = (
+    top_bif["Expense"]
+    /
+    top_bif["Expense"].sum()
+    * 100
+).round(1)
 
-st.plotly_chart(fig3, use_container_width=True)
+top_bif = top_bif.sort_values(
+    "Expense",
+    ascending=False
+).head(10)
 
-# ==================================
-# TOP 10 TABLE
-# ==================================
-top_display = top_bif.rename(columns={"AMT(W/o GST)": "Expense"})
-top_display, fmt = get_scaled_columns(top_display, ["Expense"])
-
-with st.expander("📋 View Top 10 Details", expanded=False):
-    st.dataframe(
-        top_display.style.format(fmt),
-        use_container_width=True,
-        hide_index=True
-    )
-
-st.divider()
-
-# ==================================
-# ZONE & BRAND ANALYSIS
-# ==================================
-zone_df = (
-    df_exp.groupby("Zone", as_index=False)["AMT(W/o GST)"]
-    .sum()
-    .sort_values("AMT(W/o GST)", ascending=False)
-)
-
-brand_df = (
-    df_exp.groupby("Brand", as_index=False)["AMT(W/o GST)"]
-    .sum()
-    .sort_values("AMT(W/o GST)", ascending=False)
-)
-
-left, right = st.columns(2)
-
-with left:
-    st.subheader("📍 Zone Wise Expense")
-    fig_zone = px.bar(
-        zone_df,
-        x="AMT(W/o GST)",
-        y="Zone",
-        orientation="h",
-        text_auto=".2s"
-    )
-    fig_zone.update_layout(
-        height=450,
-        yaxis=dict(categoryorder="total ascending")
-    )
-    st.plotly_chart(fig_zone, use_container_width=True)
-
-    zone_display = zone_df.rename(columns={"AMT(W/o GST)": "Expense"})
-    zone_display, fmt = get_scaled_columns(zone_display, ["Expense"])
-
-    with st.expander("📋 View Zone Details", expanded=False):
-        st.dataframe(
-            zone_display.style.format(fmt),
-            use_container_width=True,
-            hide_index=True
-        )
-
-with right:
-    st.subheader("🚗 Brand Wise Expense")
-    fig_brand = px.bar(
-        brand_df,
-        x="AMT(W/o GST)",
-        y="Brand",
-        orientation="h",
-        text_auto=".2s"
-    )
-    fig_brand.update_layout(
-        height=450,
-        yaxis=dict(categoryorder="total ascending")
-    )
-    st.plotly_chart(fig_brand, use_container_width=True)
-
-    brand_display = brand_df.rename(columns={"AMT(W/o GST)": "Expense"})
-    brand_display, fmt = get_scaled_columns(brand_display, ["Expense"])
-
-    with st.expander("📋 View Brand Details", expanded=False):
-        st.dataframe(
-            brand_display.style.format(fmt),
-            use_container_width=True,
-            hide_index=True
-        )
 
 st.caption(f"Values shown in : {current_unit()}")
 st.caption("Made By Kuldeep Pal")
