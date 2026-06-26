@@ -40,6 +40,32 @@ st.set_page_config(
 
 inject_css()
 
+# Small extra styling, layered on top of inject_css() so it doesn't
+# fight with the shared theme used by the other pages.
+st.markdown(
+    """
+    <style>
+    div[data-testid="stExpander"] {
+        border: 1px solid rgba(49, 51, 63, 0.15);
+        border-radius: 10px;
+    }
+    div[data-testid="stExpander"] summary {
+        font-weight: 600;
+    }
+    h3 {
+        margin-top: 0.25rem;
+    }
+    .section-caption {
+        color: rgba(49, 51, 63, 0.6);
+        font-size: 0.85rem;
+        margin-top: -0.6rem;
+        margin-bottom: 0.6rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # ==================================
 # LOAD DATA
 # ==================================
@@ -62,136 +88,6 @@ render_navigation()
 filters = render_common_filters(df_budget)
 
 df_budget = apply_common_filters(df_budget, filters)
-# ==================================
-# MASTER BIFURCATION DATASET
-# ==================================
-
-bif_master = (
-    df_exp.groupby(
-        [
-            "Zone",
-            "Brand",
-            "Activity type",
-            "Bifurcation"
-        ],
-        as_index=False
-    )["AMT(W/o GST)"]
-    .sum()
-)
-
-bif_master.rename(
-    columns={
-        "AMT(W/o GST)": "Expense"
-    },
-    inplace=True
-)
-
-# ==================================
-# TOTALS
-# ==================================
-
-overall_total = (
-    bif_master["Expense"]
-    .sum()
-)
-
-activity_total = (
-    bif_master.groupby(
-        [
-            "Zone",
-            "Brand",
-            "Activity type"
-        ]
-    )["Expense"]
-    .transform("sum")
-)
-
-brand_total = (
-    bif_master.groupby(
-        [
-            "Zone",
-            "Brand"
-        ]
-    )["Expense"]
-    .transform("sum")
-)
-
-zone_total = (
-    bif_master.groupby(
-        "Zone"
-    )["Expense"]
-    .transform("sum")
-)
-
-# ==================================
-# PERCENTAGES
-# ==================================
-
-bif_master["% of Activity"] = (
-    (
-        bif_master["Expense"]
-        /
-        activity_total
-    ) * 100
-).round(1)
-
-bif_master["% of Brand"] = (
-    (
-        bif_master["Expense"]
-        /
-        brand_total
-    ) * 100
-).round(1)
-
-bif_master["% of Zone"] = (
-    (
-        bif_master["Expense"]
-        /
-        zone_total
-    ) * 100
-).round(1)
-
-bif_master["% of Total"] = (
-    (
-        bif_master["Expense"]
-        /
-        overall_total
-    ) * 100
-).round(1)
-
-# ==================================
-# SORT DATA
-# ==================================
-
-bif_master = bif_master.sort_values(
-    [
-        "Zone",
-        "Brand",
-        "Activity type",
-        "Expense"
-    ],
-    ascending=[
-        True,
-        True,
-        True,
-        False
-    ]
-).reset_index(drop=True)
-
-# ==================================
-# DISPLAY MASTER DATASET
-# (Temporary - Remove Later)
-# ==================================
-
-st.subheader("📊 Master Bifurcation Dataset")
-
-st.dataframe(
-    bif_master,
-    use_container_width=True,
-    hide_index=True
-)
-
-
 
 if df_exp.empty:
     st.info("No data available for selected filters.")
@@ -229,6 +125,134 @@ with c4:
     metric_card("📉 Net Expense", net_expense)
 with c5:
     metric_card("📈 Utilization", expense_pct, is_percent=True)
+
+st.divider()
+
+# ==================================
+# MASTER BIFURCATION DATASET
+# (Interactive drill-down table)
+# ==================================
+
+bif_master = (
+    df_exp.groupby(
+        [
+            "Zone",
+            "Brand",
+            "Activity type",
+            "Bifurcation"
+        ],
+        as_index=False
+    )["AMT(W/o GST)"]
+    .sum()
+)
+
+bif_master.rename(
+    columns={
+        "AMT(W/o GST)": "Expense"
+    },
+    inplace=True
+)
+
+overall_total = bif_master["Expense"].sum()
+
+activity_total = bif_master.groupby(
+    ["Zone", "Brand", "Activity type"]
+)["Expense"].transform("sum")
+
+brand_total = bif_master.groupby(
+    ["Zone", "Brand"]
+)["Expense"].transform("sum")
+
+zone_total = bif_master.groupby("Zone")["Expense"].transform("sum")
+
+bif_master["% of Activity"] = ((bif_master["Expense"] / activity_total) * 100).round(1)
+bif_master["% of Brand"] = ((bif_master["Expense"] / brand_total) * 100).round(1)
+bif_master["% of Zone"] = ((bif_master["Expense"] / zone_total) * 100).round(1)
+bif_master["% of Total"] = ((bif_master["Expense"] / overall_total) * 100).round(1)
+
+bif_master = bif_master.sort_values(
+    ["Zone", "Brand", "Activity type", "Expense"],
+    ascending=[True, True, True, False]
+).reset_index(drop=True)
+
+st.subheader("🔎 Bifurcation Drill-Down")
+st.markdown(
+    '<p class="section-caption">Filter by Zone / Brand / Activity type to drill into the bifurcation mix. '
+    'Click a column header to sort.</p>',
+    unsafe_allow_html=True
+)
+
+f1, f2, f3, f4 = st.columns(4)
+
+with f1:
+    zone_pick = st.multiselect(
+        "Zone",
+        options=sorted(bif_master["Zone"].unique()),
+        default=[],
+        key="bif_drill_zone"
+    )
+with f2:
+    brand_pick = st.multiselect(
+        "Brand",
+        options=sorted(bif_master["Brand"].unique()),
+        default=[],
+        key="bif_drill_brand"
+    )
+with f3:
+    activity_pick = st.multiselect(
+        "Activity type",
+        options=sorted(bif_master["Activity type"].unique()),
+        default=[],
+        key="bif_drill_activity"
+    )
+with f4:
+    search_term = st.text_input(
+        "Search Bifurcation",
+        placeholder="e.g. Hoarding, Radio...",
+        key="bif_drill_search"
+    )
+
+drill_df = bif_master.copy()
+
+if zone_pick:
+    drill_df = drill_df[drill_df["Zone"].isin(zone_pick)]
+if brand_pick:
+    drill_df = drill_df[drill_df["Brand"].isin(brand_pick)]
+if activity_pick:
+    drill_df = drill_df[drill_df["Activity type"].isin(activity_pick)]
+if search_term:
+    drill_df = drill_df[
+        drill_df["Bifurcation"].str.contains(search_term, case=False, na=False)
+    ]
+
+if drill_df.empty:
+    st.warning("No rows match the selected filters.")
+else:
+    drill_display, fmt = get_scaled_columns(drill_df.copy(), ["Expense"])
+    pct_fmt = {
+        "% of Activity": "{:.1f}%",
+        "% of Brand": "{:.1f}%",
+        "% of Zone": "{:.1f}%",
+        "% of Total": "{:.1f}%",
+    }
+    fmt.update(pct_fmt)
+
+    st.dataframe(
+        drill_display.style.format(fmt).background_gradient(
+            subset=["% of Total"], cmap="Blues"
+        ),
+        use_container_width=True,
+        hide_index=True,
+        height=380
+    )
+
+    filtered_total = drill_df["Expense"].sum()
+    st.caption(
+        f"Showing {len(drill_df):,} row(s) · "
+        f"{filtered_total:,.0f} of overall {overall_total:,.0f} "
+        f"({(filtered_total / overall_total * 100):.1f}% of total) · "
+        f"Values shown in : {current_unit()}"
+    )
 
 st.divider()
 
@@ -275,11 +299,17 @@ with left:
         x="AMT(W/o GST)",
         y="Activity type",
         orientation="h",
-        text_auto=".2s"
+        text_auto=".2s",
+        color="Activity type",
+        color_discrete_sequence=px.colors.sequential.Blues_r
     )
     fig1.update_layout(
         height=500,
-        yaxis=dict(categoryorder="total ascending")
+        yaxis=dict(categoryorder="total ascending"),
+        showlegend=False,
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis_title="Expense",
+        yaxis_title=""
     )
     st.plotly_chart(fig1, use_container_width=True)
 
@@ -304,10 +334,15 @@ with right:
         bif_df,
         names="Bifurcation",
         values="AMT(W/o GST)",
-        hole=0.60
+        hole=0.60,
+        color_discrete_sequence=px.colors.sequential.Blues_r
     )
     fig2.update_traces(textinfo="percent+label")
-    fig2.update_layout(height=500)
+    fig2.update_layout(
+        height=500,
+        margin=dict(l=10, r=10, t=10, b=10),
+        showlegend=False
+    )
 
     st.plotly_chart(fig2, use_container_width=True)
 
@@ -340,14 +375,18 @@ fig3 = px.bar(
     x="AMT(W/o GST)",
     y="Bifurcation",
     orientation="h",
-    text_auto=".2s"
+    text_auto=".2s",
+    color="AMT(W/o GST)",
+    color_continuous_scale="Blues"
 )
 
 fig3.update_layout(
     height=550,
     yaxis=dict(categoryorder="total ascending"),
     xaxis_title="Expense",
-    yaxis_title=""
+    yaxis_title="",
+    coloraxis_showscale=False,
+    margin=dict(l=10, r=10, t=10, b=10)
 )
 
 st.plotly_chart(fig3, use_container_width=True)
@@ -382,20 +421,27 @@ brand_df = (
     .sort_values("AMT(W/o GST)", ascending=False)
 )
 
+st.subheader("📍 Zone & Brand Wise Expense")
+
 left, right = st.columns(2)
 
 with left:
-    st.subheader("📍 Zone Wise Expense")
     fig_zone = px.bar(
         zone_df,
         x="AMT(W/o GST)",
         y="Zone",
         orientation="h",
-        text_auto=".2s"
+        text_auto=".2s",
+        color="AMT(W/o GST)",
+        color_continuous_scale="Teal"
     )
     fig_zone.update_layout(
         height=450,
-        yaxis=dict(categoryorder="total ascending")
+        yaxis=dict(categoryorder="total ascending"),
+        coloraxis_showscale=False,
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis_title="Expense",
+        yaxis_title=""
     )
     st.plotly_chart(fig_zone, use_container_width=True)
 
@@ -410,17 +456,22 @@ with left:
         )
 
 with right:
-    st.subheader("🚗 Brand Wise Expense")
     fig_brand = px.bar(
         brand_df,
         x="AMT(W/o GST)",
         y="Brand",
         orientation="h",
-        text_auto=".2s"
+        text_auto=".2s",
+        color="AMT(W/o GST)",
+        color_continuous_scale="Purp"
     )
     fig_brand.update_layout(
         height=450,
-        yaxis=dict(categoryorder="total ascending")
+        yaxis=dict(categoryorder="total ascending"),
+        coloraxis_showscale=False,
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis_title="Expense",
+        yaxis_title=""
     )
     st.plotly_chart(fig_brand, use_container_width=True)
 
