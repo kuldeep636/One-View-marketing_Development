@@ -185,13 +185,6 @@ bif_master = bif_master.sort_values(
 # (Temporary - Remove Later)
 # ==================================
 
-st.subheader("📊 Master Bifurcation Dataset")
-
-st.dataframe(
-    bif_master,
-    use_container_width=True,
-    hide_index=True
-)
 
 
 
@@ -295,6 +288,160 @@ top_bif = top_bif.sort_values(
     "Expense",
     ascending=False
 ).head(10)
+
+# ==================================
+# CHARTS
+# ==================================
+
+left, right = st.columns(2)
+
+with left:
+
+    st.subheader(
+        "📊 Activity Type Contribution"
+    )
+
+    fig1 = px.bar(
+
+        activity_summary,
+
+        x="Expense",
+
+        y="Activity type",
+
+        orientation="h",
+
+        text_auto=".2s"
+
+    )
+
+    fig1.update_layout(
+
+        height=450,
+
+        yaxis=dict(
+            categoryorder="total ascending"
+        ),
+
+        xaxis_title="Expense",
+
+        yaxis_title=""
+
+    )
+
+    st.plotly_chart(
+
+        fig1,
+
+        use_container_width=True
+
+    )
+
+with right:
+
+    st.subheader(
+        "🏆 Top 10 Bifurcations"
+    )
+
+    fig2 = px.bar(
+
+        top_bif,
+
+        x="Expense",
+
+        y="Bifurcation",
+
+        orientation="h",
+
+        text_auto=".2s"
+
+    )
+
+    fig2.update_layout(
+
+        height=450,
+
+        yaxis=dict(
+            categoryorder="total ascending"
+        ),
+
+        xaxis_title="Expense",
+
+        yaxis_title=""
+
+    )
+
+    st.plotly_chart(
+
+        fig2,
+
+        use_container_width=True
+
+    )
+
+st.divider()
+
+left, right = st.columns(2)
+
+with left:
+
+    st.subheader(
+        "📋 Activity Summary"
+    )
+
+    activity_display, fmt = get_scaled_columns(
+
+        activity_summary,
+
+        ["Expense"]
+
+    )
+
+    st.dataframe(
+
+        activity_display.style.format({
+
+            **fmt,
+
+            "% of Total": "{:.1f}%"
+
+        }),
+
+        use_container_width=True,
+
+        hide_index=True
+
+    )
+
+with right:
+
+    st.subheader(
+        "📋 Top Bifurcations"
+    )
+
+    bif_display, fmt = get_scaled_columns(
+
+        top_bif,
+
+        ["Expense"]
+
+    )
+
+    st.dataframe(
+
+        bif_display.style.format({
+
+            **fmt,
+
+            "% of Total": "{:.1f}%"
+
+        }),
+
+        use_container_width=True,
+
+        hide_index=True
+
+    )
 
 
 st.caption(f"Values shown in : {current_unit()}")
