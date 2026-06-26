@@ -444,5 +444,189 @@ with right:
     )
 
 
+# ==================================
+# ZONE WISE SUMMARY
+# ==================================
+
+zone_budget = (
+    df_budget.groupby(
+        "Zone",
+        as_index=False
+    )["Budget"]
+    .sum()
+)
+
+zone_expense = (
+    df_exp.groupby(
+        "Zone",
+        as_index=False
+    )
+    .agg(
+        {
+            "AMT(W/o GST)": "sum",
+            "OEM Support": "sum"
+        }
+    )
+)
+
+zone_summary = zone_budget.merge(
+
+    zone_expense,
+
+    on="Zone",
+
+    how="left"
+
+).fillna(0)
+
+zone_summary.rename(
+
+    columns={
+
+        "AMT(W/o GST)": "Gross Expense"
+
+    },
+
+    inplace=True
+
+)
+
+zone_summary["Net Expense"] = (
+
+    zone_summary["Gross Expense"]
+
+    -
+
+    zone_summary["OEM Support"]
+
+)
+
+zone_summary["Utilization %"] = (
+
+    zone_summary["Net Expense"]
+
+    /
+
+    zone_summary["Budget"]
+
+    *100
+
+).round(1)
+
+top_activity = (
+
+    df_exp.groupby(
+
+        ["Zone","Activity type"]
+
+    )["AMT(W/o GST)"]
+
+    .sum()
+
+    .reset_index()
+
+)
+
+top_activity = (
+
+    top_activity.sort_values(
+
+        "AMT(W/o GST)",
+
+        ascending=False
+
+    )
+
+    .drop_duplicates(
+
+        "Zone"
+
+    )
+
+)
+
+top_bif = (
+
+    df_exp.groupby(
+
+        ["Zone","Bifurcation"]
+
+    )["AMT(W/o GST)"]
+
+    .sum()
+
+    .reset_index()
+
+)
+
+top_bif = (
+
+    top_bif.sort_values(
+
+        "AMT(W/o GST)",
+
+        ascending=False
+
+    )
+
+    .drop_duplicates(
+
+        "Zone"
+
+    )
+
+)
+
+zone_summary = (
+
+    zone_summary
+
+    .merge(
+
+        top_activity[
+
+            ["Zone","Activity type"]
+
+        ],
+
+        on="Zone",
+
+        how="left"
+
+    )
+
+    .merge(
+
+        top_bif[
+
+            ["Zone","Bifurcation"]
+
+        ],
+
+        on="Zone",
+
+        how="left"
+
+    )
+
+)
+
+zone_summary.rename(
+
+    columns={
+
+        "Activity type":"Top Activity",
+
+        "Bifurcation":"Top Bifurcation"
+
+    },
+
+    inplace=True
+
+)
+
+
+
+
 st.caption(f"Values shown in : {current_unit()}")
 st.caption("Made By Kuldeep Pal")
