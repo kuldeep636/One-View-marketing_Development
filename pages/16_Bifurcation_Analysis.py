@@ -64,6 +64,12 @@ df_exp = apply_common_filters(
     df_exp,
     filters
 )
+
+df_budget = apply_common_filters(
+    df_budget,
+    filters
+)
+
 # ==================================
 # MASTER BIFURCATION DATASET
 # ==================================
@@ -490,6 +496,183 @@ zone_summary.rename(
     inplace=True
 
 )
+
+# ==================================
+# ZONE WISE INSIGHTS
+# ==================================
+
+st.divider()
+
+st.subheader(
+    "🌍 Zone Wise Insights"
+)
+
+zone_display, fmt = get_scaled_columns(
+    zone_summary,
+    [
+        "Budget",
+        "Gross Expense",
+        "OEM Support",
+        "Net Expense"
+    ]
+)
+
+st.dataframe(
+    zone_display.style.format({
+        **fmt,
+        "Utilization %": "{:.1f}%"
+    }),
+    use_container_width=True,
+    hide_index=True
+)
+
+
+
+
+# ==================================
+# BRAND WISE SUMMARY
+# ==================================
+
+brand_budget = (
+    df_budget.groupby(
+        "Brand",
+        as_index=False
+    )["Budget"]
+    .sum()
+)
+
+brand_expense = (
+    df_exp.groupby(
+        "Brand",
+        as_index=False
+    ).agg({
+        "AMT(W/o GST)": "sum",
+        "OEM Support": "sum"
+    })
+)
+
+brand_summary = (
+    brand_budget
+    .merge(
+        brand_expense,
+        on="Brand",
+        how="left"
+    )
+    .fillna(0)
+)
+
+brand_summary.rename(
+    columns={
+        "AMT(W/o GST)": "Gross Expense"
+    },
+    inplace=True
+)
+
+brand_summary["Net Expense"] = (
+    brand_summary["Gross Expense"]
+    -
+    brand_summary["OEM Support"]
+)
+
+brand_summary["Utilization %"] = (
+    brand_summary["Net Expense"]
+    /
+    brand_summary["Budget"]
+    * 100
+).round(1)
+
+
+
+brand_activity = (
+    df_exp.groupby(
+        ["Brand", "Activity type"]
+    )["AMT(W/o GST)"]
+    .sum()
+    .reset_index()
+    .sort_values(
+        "AMT(W/o GST)",
+        ascending=False
+    )
+    .drop_duplicates("Brand")
+)
+
+brand_bif = (
+    df_exp.groupby(
+        ["Brand", "Bifurcation"]
+    )["AMT(W/o GST)"]
+    .sum()
+    .reset_index()
+    .sort_values(
+        "AMT(W/o GST)",
+        ascending=False
+    )
+    .drop_duplicates("Brand")
+)
+
+brand_summary = (
+    brand_summary
+    .merge(
+        brand_activity[
+            ["Brand", "Activity type"]
+        ],
+        on="Brand",
+        how="left"
+    )
+    .merge(
+        brand_bif[
+            ["Brand", "Bifurcation"]
+        ],
+        on="Brand",
+        how="left"
+    )
+)
+
+brand_summary.rename(
+    columns={
+        "Activity type": "Top Activity",
+        "Bifurcation": "Top Bifurcation"
+    },
+    inplace=True
+)
+
+
+# ==================================
+# BRAND WISE INSIGHTS
+# ==================================
+
+st.divider()
+
+st.subheader(
+    "🚗 Brand Wise Insights"
+)
+
+brand_display, fmt = get_scaled_columns(
+    brand_summary,
+    [
+        "Budget",
+        "Gross Expense",
+        "OEM Support",
+        "Net Expense"
+    ]
+)
+
+st.dataframe(
+    brand_display.style.format({
+        **fmt,
+        "Utilization %": "{:.1f}%"
+    }),
+    use_container_width=True,
+    hide_index=True
+)
+
+
+
+
+
+
+
+
+
 
 zone_summary["Net Expense"] = (
 
