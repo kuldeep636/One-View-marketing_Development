@@ -454,3 +454,172 @@ def validate_dates(
                     f"{col} must belong to {selected_year}"
 
                 )
+
+
+
+# ==========================================
+# MASTER VALIDATION
+# ==========================================
+
+def validate_upload(
+
+    df_upload,
+
+    selected_month,
+
+    selected_year,
+
+    activity_subtypes
+
+):
+
+    (
+        validation_errors,
+        invalid_row_numbers
+    ) = initialize_validation()
+
+    # --------------------------------------
+    # REQUIRED COLUMNS
+    # --------------------------------------
+
+    columns_ok = validate_required_columns(
+
+        df_upload,
+
+        validation_errors,
+
+        invalid_row_numbers
+
+    )
+
+    if not columns_ok:
+
+        return (
+
+            validation_errors,
+
+            invalid_row_numbers
+
+        )
+
+    # --------------------------------------
+    # BLANK VALUES
+    # --------------------------------------
+
+    validate_blank_values(
+
+        df_upload,
+
+        validation_errors,
+
+        invalid_row_numbers
+
+    )
+
+    # --------------------------------------
+    # VERTICAL
+    # --------------------------------------
+
+    validate_vertical(
+
+        df_upload,
+
+        validation_errors,
+
+        invalid_row_numbers
+
+    )
+
+    # --------------------------------------
+    # ACTIVITY TYPE
+    # --------------------------------------
+
+    validate_activity_type(
+
+        df_upload,
+
+        validation_errors,
+
+        invalid_row_numbers
+
+    )
+
+    # --------------------------------------
+    # ACTIVITY SUB TYPE
+    # --------------------------------------
+
+    validate_activity_subtype(
+
+        df_upload,
+
+        activity_subtypes,
+
+        validation_errors,
+
+        invalid_row_numbers
+
+    )
+
+    # --------------------------------------
+    # INVESTMENT
+    # --------------------------------------
+
+    validate_investment(
+
+        df_upload,
+
+        validation_errors,
+
+        invalid_row_numbers
+
+    )
+
+    # --------------------------------------
+    # DATES
+    # --------------------------------------
+
+    validate_dates(
+
+        df_upload,
+
+        selected_month,
+
+        selected_year,
+
+        validation_errors,
+
+        invalid_row_numbers
+
+    )
+
+    # --------------------------------------
+    # REMOVE DUPLICATES
+    # --------------------------------------
+
+    validation_errors = list(
+
+        dict.fromkeys(
+
+            validation_errors
+
+        )
+
+    )
+
+    invalid_row_numbers = sorted(
+
+        list(
+
+            invalid_row_numbers
+
+        )
+
+    )
+
+    return (
+
+        validation_errors,
+
+        invalid_row_numbers
+
+    )
