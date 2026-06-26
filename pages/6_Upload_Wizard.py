@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from utils.validation import validate_upload
 from utils.gsheet import load_activity_data, append_dataframe_to_sheet
 from utils.sidebar import render_navigation
 from utils.ui import inject_css
@@ -336,35 +337,87 @@ if uploaded_file:
 # ==================================
 # VALIDATION
 # ==================================
+
 validation_passed = False
+
 if uploaded_file and df_upload is not None:
+
     st.divider()
-    st.subheader("Step 6 : Data Validation")
-   
-    # ... [Your full validation logic goes here] ...
-    # (validation_errors, invalid_row_numbers, etc.)
 
-    # Summary
+    st.subheader(
+        "Step 6 : Data Validation"
+    )
+
+    validation_errors, invalid_row_numbers = validate_upload(
+
+        df_upload=df_upload,
+
+        selected_month=month,
+
+        selected_year=year,
+
+        activity_subtypes=ACTIVITY_SUBTYPES
+
+    )
+
     total_rows = len(df_upload)
-    invalid_count = len(invalid_row_numbers) if 'invalid_row_numbers' in locals() else 0
-    valid_count = total_rows - invalid_count
+
+    invalid_count = len(
+        invalid_row_numbers
+    )
+
+    valid_count = (
+        total_rows
+        -
+        invalid_count
+    )
+
     c1, c2, c3 = st.columns(3)
-    c1.metric("Total Rows", total_rows)
-    c2.metric("✅ Valid Rows", valid_count)
-    c3.metric("❌ Invalid Rows", invalid_count)
 
-    if 'validation_errors' in locals() and validation_errors:
-        st.error(f"Found {len(validation_errors)} validation issues")
-        with st.expander("📋 View Validation Errors"):
-            for error in validation_errors[:50]:
+    c1.metric(
+        "Total Rows",
+        total_rows
+    )
+
+    c2.metric(
+        "✅ Valid Rows",
+        valid_count
+    )
+
+    c3.metric(
+        "❌ Invalid Rows",
+        invalid_count
+    )
+
+    if validation_errors:
+
+        st.error(
+
+            f"Found {len(validation_errors)} validation issues"
+
+        )
+
+        with st.expander(
+
+            "📋 View Validation Errors",
+
+            expanded=False
+
+        ):
+
+            for error in validation_errors:
+
                 st.write(error)
-            if len(validation_errors) > 50:
-                st.write(f"... and {len(validation_errors)-50} more")
-    else:
-        st.success("🎉 All validations passed!")
-        validation_passed = True
 
-# ==================================
+    else:
+
+        st.success(
+
+            "🎉 All validations passed!"
+
+        )
+
+        validation_passed = True# ==================================
 # DUPLICATE CHECK
 # ==================================
 allow_reupload = False
