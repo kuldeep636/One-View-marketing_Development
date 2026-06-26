@@ -277,31 +277,52 @@ def validate_activity_subtype(
         subtype = str(
             row["Activity Sub Type"]
         ).strip()
+# ==========================================
+# FLEXY
+# Allow any non-blank subtype
+# ==========================================
 
-        if activity == "FLEXY":
+if activity == "FLEXY":
 
-            continue
+    if subtype == "":
 
-        valid_subtypes = activity_subtypes.get(
-            activity,
-            []
+        add_error(
+
+            validation_errors,
+
+            invalid_row_numbers,
+
+            row_no,
+
+            "Activity Sub Type cannot be blank"
+
         )
 
-        if subtype not in valid_subtypes:
+    continue
 
-            add_error(
+# ==========================================
+# ATL / BTL / DIGITAL
+# Validate against predefined list
+# ==========================================
 
-                validation_errors,
+valid_subtypes = activity_subtypes.get(
+    activity,
+    []
+)
 
-                invalid_row_numbers,
+if subtype not in valid_subtypes:
 
-                row_no,
+    add_error(
 
-                f"'{subtype}' is not a valid Sub Type for {activity}"
+        validation_errors,
 
-            )
+        invalid_row_numbers,
 
+        row_no,
 
+        f"'{subtype}' is not a valid Sub Type for {activity}"
+
+    )
 # ==========================================
 # INVESTMENT VALIDATION
 # ==========================================
