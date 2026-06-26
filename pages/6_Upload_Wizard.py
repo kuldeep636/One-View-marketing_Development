@@ -15,7 +15,8 @@ ACTIVITY_SUBTYPES = {
         "Cinema Advertising",
         "TV Advertising",
         "Elevator Promotions",
-        "Leaflet Distribution"
+        "Leaflet Distribution",
+        "Podcast Advertisement"
     ],
     "BTL": [
         "Mall Display",
@@ -41,7 +42,8 @@ ACTIVITY_SUBTYPES = {
         "SEO",
         "Email Marketing",
         "WhatsApp Marketing",
-        "Influencer Marketing"
+        "Influencer Marketing",
+        "Aggregator"
     ]
 }
 
@@ -186,6 +188,7 @@ with st.expander("📋 Activity Type & Sub Type Guidelines"):
 - TV Advertising
 - Leaflet Distribution
 - Elevator Promotions
+- Podcast Advertisement
 ### BTL
 - Mall Display
 - Hotel Display
@@ -210,6 +213,7 @@ with st.expander("📋 Activity Type & Sub Type Guidelines"):
 - Email Marketing
 - WhatsApp Marketing
 - Influencer Marketing
+- Aggregator
 """)
 
 # ==================================
