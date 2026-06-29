@@ -170,24 +170,16 @@ if uploaded_file:
     # ==================================
     # REQUIRED COLUMNS
     # ==================================
-
-    required_cols = [
-        "Zone",
-        "Brand",
+    REQUIRED_COLUMNS = [
         "Vertical",
-        "Year",
-        "Month",
         "Location",
         "Activity Type",
         "Activity Sub Type",
         "Activity Description",
-        "Investment",
-        "Supporting Link",
-        "Status"
+        "Activity Start date",
+        "Activity End date",
+        "Investment"
     ]
-
-    errors = []
-
     # ==================================
     # COLUMN VALIDATION
     # ==================================
