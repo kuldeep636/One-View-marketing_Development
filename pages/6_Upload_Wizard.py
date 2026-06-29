@@ -115,7 +115,7 @@ name = st.session_state.get("name", "Unknown")
 st.sidebar.info(f"**Logged in as:** {name} ({role})")
 
 # ==================================
-# STEP 1-3: BASIC SELECTIONS
+# STEP 1: UPLOAD TYPE
 # ==================================
 st.subheader("Step 1 : Upload Type")
 upload_type = st.selectbox(
@@ -129,9 +129,65 @@ elif upload_type == "Budget & Target":
     st.warning("🚧 Budget & Target Upload is under development.")
     st.stop()
 elif upload_type == "Expense Data":
-    st.warning("🚧 Expense Data Upload is under development.")
-    st.stop()
+    st.markdown("---")
+    st.subheader("💰 Expense Upload")
+    st.caption("Upload monthly marketing expense data.")
+    st.markdown("### Step 2 : Upload Information")
+    c1, c2 = st.columns(2)
+    with c1:
+        year = st.selectbox(
+            "Year",
+            ["2025", "2026", "2027"],
+            key="expense_year"
+        )
+    with c2:
+        month = st.selectbox(
+            "Month",
+            ["January", "February", "March", "April", "May", "June",
+             "July", "August", "September", "October", "November", "December"],
+            key="expense_month"
+        )
+    st.markdown("---")
+    st.markdown("### Step 3 : Upload Scope")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.selectbox("Zone", ["Loading..."], key="expense_zone")
+    with c2:
+        st.selectbox("Brand", ["Loading..."], key="expense_brand")
+    st.markdown("---")
+    with st.expander("📖 Upload Guide", expanded=True):
+        st.markdown("""
+- Select Year
+- Select Month
+- Select Zone
+- Select Brand
+- Upload the Expense Excel file
 
+The system will automatically generate:
+- GST
+- Total Amount
+- Net Expense
+- Calendar Fields
+- Financial Fields
+- Uploaded By
+- Upload Timestamp
+        """)
+    st.download_button(
+        "📥 Download Expense Template",
+        data=b"",
+        file_name="Expense_Template.xlsx",
+        use_container_width=True
+    )
+    expense_file = st.file_uploader(
+        "📤 Upload Expense File",
+        type=["xlsx"],
+        key="expense_upload"
+    )
+    st.button("Next ➜", use_container_width=True, disabled=True)
+
+# ==================================
+# STEP 2: SELECT PERIOD (for Marketing Plan)
+# ==================================
 st.subheader("Step 2 : Select Period")
 col1, col2 = st.columns(2)
 with col1:
@@ -146,35 +202,35 @@ with col2:
 st.info(f"**Selected Period**: {month} {year}")
 st.divider()
 
-# Upload Guidelines & Sample Template
 # ==================================
 # UPLOAD GUIDELINES
 # ==================================
-with st.expander(
-    "📋 Allowed Values & Upload Guidelines",
-    expanded=False
-):
+with st.expander("📋 Allowed Values & Upload Guidelines", expanded=False):
     st.markdown("""
-    ### Vertical
-    - Sales
-    - After Sales
-    ### Activity Type
-    - ATL
-    - BTL
-    - DIGITAL
-    - FLEXY
-    ### Date Format
-    - DD-MMM-YYYY
-    - Example: 01-Jul-2026
-    ### Investment
-    - Numeric values only
-    - Example: 50000
-    ### Important Validation Rules
-    - Activity Start Date must belong to the selected Month & Year
-    - Activity End Date must belong to the selected Month & Year
-    - Blank values are not allowed
-    - Invalid Activity Types are not allowed
-    - Invalid Vertical values are not allowed
+### Vertical
+- Sales
+- After Sales
+
+### Activity Type
+- ATL
+- BTL
+- DIGITAL
+- FLEXY
+
+### Date Format
+- DD-MMM-YYYY
+- Example: 01-Jul-2026
+
+### Investment
+- Numeric values only
+- Example: 50000
+
+### Important Validation Rules
+- Activity Start Date must belong to the selected Month & Year
+- Activity End Date must belong to the selected Month & Year
+- Blank values are not allowed
+- Invalid Activity Types are not allowed
+- Invalid Vertical values are not allowed
     """)
 
 with st.expander("📋 Activity Type & Sub Type Guidelines"):
@@ -189,6 +245,7 @@ with st.expander("📋 Activity Type & Sub Type Guidelines"):
 - Leaflet Distribution
 - Elevator Promotions
 - Podcast Advertisement
+
 ### BTL
 - Mall Display
 - Hotel Display
@@ -205,6 +262,7 @@ with st.expander("📋 Activity Type & Sub Type Guidelines"):
 - Product Launch
 - Exhibition
 - Golf Event
+
 ### DIGITAL
 - Content Creation
 - Meta Ads
@@ -214,13 +272,14 @@ with st.expander("📋 Activity Type & Sub Type Guidelines"):
 - WhatsApp Marketing
 - Influencer Marketing
 - Aggregator
-""")
+    """)
 
 # ==================================
 # SAMPLE TEMPLATE
 # ==================================
 st.subheader("📥 Download Sample Template")
 from io import BytesIO
+
 sample_df = create_sample_template()
 output = BytesIO()
 with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -298,15 +357,15 @@ elif role == "Brand Manager":
         if "|" in item:
             zone_name, brand_name = item.split("|", 1)
             mappings.append({"zone": zone_name.strip(), "brand": brand_name.strip()})
-   
+  
     if not mappings:
         st.error("No access mapping configured.")
         st.stop()
-   
+  
     allowed_zones = sorted({m["zone"] for m in mappings})
     zone = st.selectbox("Select Zone", allowed_zones)
     allowed_brands = sorted([m["brand"] for m in mappings if m["zone"] == zone])
-   
+  
     if len(allowed_brands) == 1:
         brand = allowed_brands[0]
         st.text_input("Brand", value=brand, disabled=True)
@@ -330,8 +389,10 @@ if uploaded_file:
         df_upload = pd.read_excel(uploaded_file)
         st.success(f"✅ File loaded: {uploaded_file.name}")
         c1, c2 = st.columns(2)
-        with c1: st.metric("Rows", len(df_upload))
-        with c2: st.metric("Columns", len(df_upload.columns))
+        with c1: 
+            st.metric("Rows", len(df_upload))
+        with c2: 
+            st.metric("Columns", len(df_upload.columns))
         st.subheader("Preview (First 20 Rows)")
         st.dataframe(df_upload.head(20), use_container_width=True, hide_index=True)
     except Exception as e:
@@ -341,222 +402,110 @@ if uploaded_file:
 # ==================================
 # VALIDATION
 # ==================================
-
 validation_passed = False
-
 if uploaded_file and df_upload is not None:
-
     st.divider()
-
-    st.subheader(
-        "Step 6 : Data Validation"
-    )
-
+    st.subheader("Step 6 : Data Validation")
+    
     validation_errors, invalid_row_numbers = validate_upload(
-
         df_upload=df_upload,
-
         selected_month=month,
-
         selected_year=year,
-
         activity_subtypes=ACTIVITY_SUBTYPES
-
     )
-
+    
     total_rows = len(df_upload)
-
-    invalid_count = len(
-        invalid_row_numbers
-    )
-
-    valid_count = (
-        total_rows
-        -
-        invalid_count
-    )
-
+    invalid_count = len(invalid_row_numbers)
+    valid_count = total_rows - invalid_count
+    
     c1, c2, c3 = st.columns(3)
-
-    c1.metric(
-        "Total Rows",
-        total_rows
-    )
-
-    c2.metric(
-        "✅ Valid Rows",
-        valid_count
-    )
-
-    c3.metric(
-        "❌ Invalid Rows",
-        invalid_count
-    )
-
+    c1.metric("Total Rows", total_rows)
+    c2.metric("✅ Valid Rows", valid_count)
+    c3.metric("❌ Invalid Rows", invalid_count)
+    
     if validation_errors:
-
-        st.error(
-
-            f"Found {len(validation_errors)} validation issues"
-
-        )
-
-        with st.expander(
-
-            "📋 View Validation Errors",
-
-            expanded=False
-
-        ):
-
+        st.error(f"Found {len(validation_errors)} validation issues")
+        with st.expander("📋 View Validation Errors", expanded=False):
             for error in validation_errors:
-
                 st.write(error)
-
     else:
+        st.success("🎉 All validations passed!")
+        validation_passed = True
 
-        st.success(
-
-            "🎉 All validations passed!"
-
-        )
-
-        validation_passed = True# ==================================
+# ==================================
 # DUPLICATE CHECK
 # ==================================
 allow_reupload = False
 duplicate_found = False
 
 if validation_passed and df_upload is not None:
-
     existing_df = load_activity_data()
-
     duplicate_check = existing_df[
-        (existing_df["Year"].astype(str) == str(year))
-        &
-        (existing_df["Month"].astype(str).str.strip() == str(month))
-        &
-        (existing_df["Zone"].astype(str).str.strip() == str(zone))
-        &
+        (existing_df["Year"].astype(str) == str(year)) &
+        (existing_df["Month"].astype(str).str.strip() == str(month)) &
+        (existing_df["Zone"].astype(str).str.strip() == str(zone)) &
         (existing_df["Brand"].astype(str).str.strip() == str(brand))
     ]
-
+    
     if not duplicate_check.empty:
-
         duplicate_found = True
-    
         uploaded_by = "Unknown"
-        if (
-            "Uploaded By" in duplicate_check.columns
-            and
-            not duplicate_check["Uploaded By"].dropna().empty
-        ):
-            uploaded_by = (
-                duplicate_check["Uploaded By"]
-                .dropna()
-                .astype(str)
-                .iloc[0]
-            )
-    
+        if ("Uploaded By" in duplicate_check.columns and 
+            not duplicate_check["Uploaded By"].dropna().empty):
+            uploaded_by = duplicate_check["Uploaded By"].dropna().astype(str).iloc[0]
+        
         upload_time = "Unknown"
-        if (
-            "Upload Timestamp" in duplicate_check.columns
-            and
-            not duplicate_check["Upload Timestamp"].dropna().empty
-        ):
-            upload_time = (
-                duplicate_check["Upload Timestamp"]
-                .dropna()
-                .astype(str)
-                .iloc[0]
-            )
-    
-        st.error(
-            f"""
-    ⚠ Marketing Plan Already Exists
-    
-    Year : {year}
-    Month : {month}
-    Zone : {zone}
-    Brand : {brand}
-    
-    Uploaded By : {uploaded_by}
-    
-    Upload Time : {upload_time}
-    """
-        )
-    
-        # Summary
+        if ("Upload Timestamp" in duplicate_check.columns and 
+            not duplicate_check["Upload Timestamp"].dropna().empty):
+            upload_time = duplicate_check["Upload Timestamp"].dropna().astype(str).iloc[0]
+        
+        st.error(f"""
+⚠ Marketing Plan Already Exists
+
+Year : {year}
+Month : {month}
+Zone : {zone}
+Brand : {brand}
+
+Uploaded By : {uploaded_by}
+Upload Time : {upload_time}
+        """)
+        
         total_activities = len(duplicate_check)
-    
         total_investment = 0
         if "Investment" in duplicate_check.columns:
             total_investment = pd.to_numeric(
-                duplicate_check["Investment"],
-                errors="coerce"
+                duplicate_check["Investment"], errors="coerce"
             ).fillna(0).sum()
-    
+        
         c1, c2 = st.columns(2)
-    
         with c1:
-            st.metric(
-                "Existing Activities",
-                total_activities
-            )
-    
+            st.metric("Existing Activities", total_activities)
         with c2:
-            st.metric(
-                "Total Investment",
-                f"₹ {total_investment:,.0f}"
-            )
-    
-        # Existing Plan Preview
+            st.metric("Total Investment", f"₹ {total_investment:,.0f}")
+        
         preview_cols = [
-            "Activity Type",
-            "Activity Sub Type",
-            "Activity Description",
-            "Activity Start date",
-            "Activity End date",
-            "Investment"
+            "Activity Type", "Activity Sub Type", "Activity Description",
+            "Activity Start date", "Activity End date", "Investment"
         ]
-    
-        available_cols = [
-            col
-            for col in preview_cols
-            if col in duplicate_check.columns
-        ]
-    
-        with st.expander(
-            "📋 View Existing Marketing Plan",
-            expanded=False
-        ):
-            st.dataframe(
-                duplicate_check[available_cols],
-                width="stretch",
-                hide_index=True
-            )
-    
-        allow_reupload = st.checkbox(
-            "I confirm this upload is intentional"
-        )
+        available_cols = [col for col in preview_cols if col in duplicate_check.columns]
+        
+        with st.expander("📋 View Existing Marketing Plan", expanded=False):
+            st.dataframe(duplicate_check[available_cols], use_container_width=True, hide_index=True)
+        
+        allow_reupload = st.checkbox("I confirm this upload is intentional")
+
 # ==================================
 # UPLOAD SECTION
 # ==================================
-if (
-    validation_passed
-    and
-    df_upload is not None
-    and
-    (
-        not duplicate_found
-        or
-        allow_reupload
-    )
-):
+if (validation_passed and 
+    df_upload is not None and 
+    (not duplicate_found or allow_reupload)):
+    
     if st.button("🚀 Upload to Google Sheets", type="primary", use_container_width=True):
         try:
             final_df = df_upload.copy()
-           
+            
             # Auto-populate system fields
             final_df["Zone"] = zone
             final_df["Brand"] = brand
@@ -569,23 +518,23 @@ if (
             final_df["Remarks"] = ""
             final_df["Uploaded By"] = name
             final_df["Upload Timestamp"] = datetime.now()
-           
+            
             sheet_name_map = {
                 "Marketing Plan": "Marketing Plan",
                 "Expense Data": "Expenes",
                 "Budget Data": "Budget and Target Overview"
             }
-           
+            
             sheet_name = sheet_name_map.get(upload_type)
             if not sheet_name:
                 st.error("Invalid upload type")
             else:
                 with st.spinner("Uploading Marketing Plan..."):
                     append_dataframe_to_sheet(sheet_name, final_df)
-               
+                
                 st.cache_data.clear()
                 st.session_state.upload_completed = True
                 st.rerun()
-               
+                
         except Exception as e:
             st.error(f"❌ Upload failed: {e}")
