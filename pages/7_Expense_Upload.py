@@ -16,11 +16,11 @@ if not st.session_state.get(
         "Please login first."
     )
     st.stop()
-  st.set_page_config(
-    page_title="Expense Upload Wizard",
-    page_icon="📤",
-    layout="wide"
-)
+    st.set_page_config(
+        page_title="Expense Upload Wizard",
+        page_icon="📤",
+        layout="wide"
+    )
 
 inject_css()
 render_navigation()
@@ -31,7 +31,8 @@ page_header(
 if "expense_upload_step" not in st.session_state:
 
     st.session_state.expense_upload_step = 1
-  with st.expander(
+
+with st.expander(
     "📖 Upload Guide",
     expanded=True
 ):
@@ -58,6 +59,7 @@ The system will automatically generate:
 - Upload Timestamp
         """
     )
-  st.info(
+    
+st.info(
     f"Step {st.session_state.expense_upload_step} of 5"
 )
