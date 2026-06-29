@@ -162,76 +162,57 @@ Marketing Data Upload Center
 st.divider()
 
 
-# ==================================
-# SUCCESS SCREEN
-# ==================================
+st.subheader("Step 1 : Upload Type")
 
-if st.session_state.upload_completed:
-
-    col1, col2, col3 = st.columns([1, 2, 1])
-
-    with col2:
-
-        st.image(
-            "assets/upload_success.webp",
-            width=300
-        )
-
-        st.success(
-            "Marketing Plan Uploaded Successfully"
-        )
-
-        st.caption(
-            "Thank you for uploading your marketing plan."
-        )
-
-        if st.button(
-            "📤 Upload Another File",
-            use_container_width=True
-        ):
-
-            st.session_state.upload_completed = False
-
-            st.rerun()
-
-    st.stop()
-
-
-# ==================================
-# USER INFO
-# ==================================
-
-role = st.session_state.get(
-    "role",
-    ""
+upload_type = st.selectbox(
+    "Select Upload Type",
+    [
+        "Marketing Plan",
+        "Expense Data",
+        "Budget & Target"
+    ]
 )
 
-name = st.session_state.get(
-    "name",
-    "Unknown"
-)
+st.divider()
 
-st.sidebar.info(
-    f"**Logged in as:** {name} ({role})"
-)
+if upload_type == "Marketing Plan":
 
+    st.success(
+        "📋 Marketing Plan Upload"
+    )
 
-# ==================================
-# FUNCTION DEFINITIONS
-# ==================================
+    if st.button(
+        "Open Marketing Plan Upload",
+        use_container_width=True
+    ):
+        st.switch_page(
+            "pages/6_Upload_Marketing_Plan.py"
+        )
 
-def marketing_plan_upload():
+elif upload_type == "Expense Data":
 
-    pass
+    st.info(
+        "💰 Expense Upload"
+    )
 
+    if st.button(
+        "Open Expense Upload",
+        use_container_width=True
+    ):
+        st.switch_page(
+            "pages/7_Expense_Upload.py"
+        )
 
-def expense_upload():
-
-    pass
-
-
-def budget_upload():
+elif upload_type == "Budget & Target":
 
     st.warning(
-        "🚧 Budget & Target Upload is under development."
+        "🎯 Budget Upload"
     )
+
+    if st.button(
+        "Open Budget Upload",
+        use_container_width=True
+    ):
+        st.switch_page(
+            "pages/8_Budget_Upload.py"
+        )
