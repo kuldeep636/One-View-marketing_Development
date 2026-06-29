@@ -495,45 +495,66 @@ Upload Time : {upload_time}
         allow_reupload = st.checkbox("I confirm this upload is intentional")
 
 # ==================================
-# UPLOAD SECTION
+# STEP 2 : UPLOAD INFORMATION
 # ==================================
-if (validation_passed and 
-    df_upload is not None and 
-    (not duplicate_found or allow_reupload)):
-    
-    if st.button("🚀 Upload to Google Sheets", type="primary", use_container_width=True):
-        try:
-            final_df = df_upload.copy()
-            
-            # Auto-populate system fields
-            final_df["Zone"] = zone
-            final_df["Brand"] = brand
-            final_df["Year"] = year
-            final_df["Month"] = month
-            final_df["Status"] = "Planned"
-            final_df["Execution Status"] = "Pending"
-            final_df["Actual Investment"] = 0
-            final_df["Execution Date"] = ""
-            final_df["Remarks"] = ""
-            final_df["Uploaded By"] = name
-            final_df["Upload Timestamp"] = datetime.now()
-            
-            sheet_name_map = {
-                "Marketing Plan": "Marketing Plan",
-                "Expense Data": "Expenes",
-                "Budget Data": "Budget and Target Overview"
-            }
-            
-            sheet_name = sheet_name_map.get(upload_type)
-            if not sheet_name:
-                st.error("Invalid upload type")
-            else:
-                with st.spinner("Uploading Marketing Plan..."):
-                    append_dataframe_to_sheet(sheet_name, final_df)
-                
-                st.cache_data.clear()
-                st.session_state.upload_completed = True
-                st.rerun()
-                
-        except Exception as e:
-            st.error(f"❌ Upload failed: {e}")
+
+st.markdown("### Step 2 : Upload Information")
+
+col1, col2 = st.columns(2)
+
+with col1:
+
+    year = st.selectbox(
+        "📅 Year",
+        [
+            "2025",
+            "2026",
+            "2027"
+        ],
+        key="expense_year"
+    )
+
+with col2:
+
+    month = st.selectbox(
+        "📆 Month",
+        [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December"
+        ],
+        key="expense_month"
+    )
+
+st.markdown("### Step 3 : Upload Scope")
+
+col1, col2 = st.columns(2)
+
+with col1:
+
+    zone = st.selectbox(
+        "🌍 Zone",
+        [
+            "Select Zone"
+        ],
+        key="expense_zone"
+    )
+
+with col2:
+
+    brand = st.selectbox(
+        "🚗 Brand",
+        [
+            "Select Brand"
+        ],
+        key="expense_brand"
+    )
