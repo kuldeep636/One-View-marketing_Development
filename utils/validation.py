@@ -117,17 +117,28 @@ def validate_blank_values(
 # ==========================================
 # VERTICAL VALIDATION
 # ==========================================
+
 def validate_vertical(
     df,
     validation_errors,
     invalid_row_numbers
 ):
+
+    valid_verticals = {
+        v.strip().lower()
+        for v in VALID_VERTICALS
+    }
+
     for idx, row in df.iterrows():
+
         row_no = idx + 2
+
         vertical = str(
             row["Vertical"]
         ).strip()
-        if vertical not in VALID_VERTICALS:
+
+        if vertical.lower() not in valid_verticals:
+
             add_error(
                 validation_errors,
                 invalid_row_numbers,
