@@ -61,7 +61,17 @@ def add_error(
 
 # ==========================================
 # REQUIRED COLUMNS
-# ==========================================
+# ==========================================if (
+    pd.isna(value)
+    or
+    str(value).strip() == ""
+):
+    add_error(
+        validation_errors,
+        invalid_row_numbers,
+        row_no,
+        f"{col} cannot be blank"
+    )
 def validate_required_columns(
     df,
     validation_errors,
@@ -92,15 +102,11 @@ def validate_blank_values(
         row_no = idx + 2
         for col in REQUIRED_COLUMNS:
             value = row[col]
-            if pd.isna(value):
-                add_error(
-                    validation_errors,
-                    invalid_row_numbers,
-                    row_no,
-                    f"{col} cannot be blank"
-                )
-                continue
-            if str(value).strip() == "":
+            if (
+                pd.isna(value)
+                or
+                str(value).strip() == ""
+            ):
                 add_error(
                     validation_errors,
                     invalid_row_numbers,
