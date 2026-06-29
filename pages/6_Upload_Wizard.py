@@ -143,8 +143,7 @@ elif upload_type == "Expense Data":
     with c2:
         month = st.selectbox(
             "Month",
-            ["January", "February", "March", "April", "May", "June",
-             "July", "August", "September", "October", "November", "December"],
+            ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
             key="expense_month"
         )
     st.markdown("---")
