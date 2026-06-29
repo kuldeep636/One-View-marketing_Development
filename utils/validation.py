@@ -1,6 +1,18 @@
 import pandas as pd
 from datetime import datetime
+def normalize_vertical(value):
 
+    value = str(value).strip()
+
+    mapping = {
+        "sales": "Sales",
+        "after sales": "After Sales",
+        "after  sales": "After Sales"
+    }
+
+    key = " ".join(value.lower().split())
+
+    return mapping.get(key, value)
 # ==========================================
 # REQUIRED COLUMNS
 # ==========================================
@@ -131,20 +143,22 @@ def validate_vertical(
 
     for idx, row in df.iterrows():
 
-        row_no = idx + 2
+    row_no = idx + 2
 
-        vertical = str(
-            row["Vertical"]
-        ).strip()
+    normalized = normalize_vertical(
+        row["Vertical"]
+    )
 
-        if vertical.lower() not in valid_verticals:
+    df.at[idx, "Vertical"] = normalized
 
-            add_error(
-                validation_errors,
-                invalid_row_numbers,
-                row_no,
-                f"Invalid Vertical '{vertical}'"
-            )
+    if normalized not in VALID_VERTICALS:
+
+        add_error(
+            validation_errors,
+            invalid_row_numbers,
+            row_no,
+            f"Invalid Vertical '{row['Vertical']}'"
+        )
 
 # ==========================================
 # ACTIVITY TYPE VALIDATION
