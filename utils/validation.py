@@ -1,15 +1,6 @@
 import pandas as pd
 from datetime import datetime
 
-def normalize_vertical(value):
-    value = str(value).strip()
-    mapping = {
-        "sales": "Sales",
-        "after sales": "After Sales",
-        "after sales": "After Sales"
-    }
-    key = " ".join(value.lower().split())
-    return mapping.get(key, value)
 
 
 # ==========================================
@@ -38,12 +29,7 @@ VERTICAL_MAPPING = {
     "after sales": "After Sales"
 }
 
-ACTIVITY_TYPE_MAPPING = {
-    "atl": "ATL",
-    "btl": "BTL",
-    "digital": "DIGITAL",
-    "flexy": "FLEXY"
-}
+
 
 
 # ==========================================
