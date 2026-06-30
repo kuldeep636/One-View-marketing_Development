@@ -3,6 +3,7 @@ import pandas as pd
 
 from utils.sidebar import render_navigation
 from utils.access import apply_role_access
+from utils.validation import validate_expense_required_columns
 from utils.gsheet import (
     load_users,
     load_expense_data
@@ -159,8 +160,24 @@ if st.button(
         st.error("Please upload an Excel file.")
         st.stop()
 
+    # Read Excel
+    df_upload = pd.read_excel(uploaded_file)
+
+    # Validate Columns
+    missing_columns, extra_columns = validate_expense_required_columns(df_upload)
+
+    if missing_columns:
+        st.error("❌ Missing Required Columns")
+        st.write(missing_columns)
+        st.stop()
+
+    if extra_columns:
+        st.warning("⚠️ Extra Columns Found")
+        st.write(extra_columns)
+
+    st.success("✅ Template validated successfully.")
+
     st.session_state["upload_zone"] = zone
     st.session_state["upload_brand"] = brand
     st.session_state["uploaded_expense_file"] = uploaded_file
-
-    st.success("File uploaded successfully. Ready for validation.")
+    st.session_state["expense_df"] = df_upload
