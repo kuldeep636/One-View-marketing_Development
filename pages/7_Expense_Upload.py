@@ -63,73 +63,82 @@ The system will automatically generate:
 st.info(
     f"Step {st.session_state.expense_upload_step} of 5"
 )
-# ==============================
-# STEP 1 : Upload File
-# ==============================
+# ==================================
+# LOAD EXPENSE DATA
+# ==================================
 
-users_df = load_users()
+expense_df = load_expense_data()
 
-# Zone List
+# Apply Role Access
+expense_df = apply_role_access(expense_df)
+
+# ==================================
+# ZONE
+# ==================================
+
 zone_list = sorted(
-    users_df["Zone"]
+    expense_df["Zone"]
     .dropna()
+    .astype(str)
     .unique()
     .tolist()
 )
 
-zone = st.selectbox(
-    "Select Zone",
-    zone_list,
-    index=None,
-    placeholder="Choose Zone"
+if len(zone_list) == 1:
+
+    zone = zone_list[0]
+
+    st.text_input(
+        "Zone",
+        value=zone,
+        disabled=True
+    )
+
+else:
+
+    zone = st.selectbox(
+        "Select Zone",
+        zone_list
+    )
+
+# ==================================
+# BRAND
+# ==================================
+
+brand_df = expense_df[
+    expense_df["Zone"] == zone
+]
+
+brand_list = sorted(
+    brand_df["Brand"]
+    .dropna()
+    .astype(str)
+    .unique()
+    .tolist()
 )
 
-brand = None
+if len(brand_list) == 1:
 
-if zone:
+    brand = brand_list[0]
 
-    brand_list = sorted(
-        users_df[
-            users_df["Zone"] == zone
-        ]["Brand"]
-        .dropna()
-        .unique()
-        .tolist()
+    st.text_input(
+        "Brand",
+        value=brand,
+        disabled=True
     )
+
+else:
 
     brand = st.selectbox(
         "Select Brand",
-        brand_list,
-        index=None,
-        placeholder="Choose Brand"
+        brand_list
     )
+
+# ==================================
+# FILE UPLOAD
+# ==================================
 
 uploaded_file = st.file_uploader(
     "Upload Expense Excel",
-    type=["xlsx"],
-    accept_multiple_files=False
+    type=["xlsx"]
 )
-
-if st.button(
-    "Validate File",
-    type="primary",
-    use_container_width=True
-):
-
-    if not zone:
-        st.error("Please select Zone.")
-        st.stop()
-
-    if not brand:
-        st.error("Please select Brand.")
-        st.stop()
-
-    if uploaded_file is None:
-        st.error("Please upload an Excel file.")
-        st.stop()
-
-    st.session_state.zone = zone
-    st.session_state.brand = brand
-    st.session_state.uploaded_expense_file = uploaded_file
-
-    st.success("Step 1 completed successfully.")
