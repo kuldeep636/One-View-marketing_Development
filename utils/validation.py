@@ -210,90 +210,75 @@ def validate_dates(
     validation_errors,
     invalid_row_numbers
 ):
-
     for idx, row in df.iterrows():
 
         row_no = idx + 2
 
-        # --------------------------------------
-        # Activity Start Date
-        # --------------------------------------
+        # -------------------------
+        # Read Start Date
+        # -------------------------
         try:
-
-            start_date = row["Activity Start date"]
-
-            if not isinstance(start_date, datetime):
-
-                start_date = datetime.strptime(
-                    str(start_date),
-                    DATE_FORMAT
-                )
-
+            start_date = pd.to_datetime(
+                row["Activity Start date"],
+                errors="raise"
+            )
         except:
-
             add_error(
                 validation_errors,
                 invalid_row_numbers,
                 row_no,
                 "Invalid Activity Start date"
             )
-
             continue
 
-        # --------------------------------------
-        # Activity End Date
-        # --------------------------------------
+        # -------------------------
+        # Read End Date
+        # -------------------------
         try:
-
-            end_date = row["Activity End date"]
-
-            if not isinstance(end_date, datetime):
-
-                end_date = datetime.strptime(
-                    str(end_date),
-                    DATE_FORMAT
-                )
-
+            end_date = pd.to_datetime(
+                row["Activity End date"],
+                errors="raise"
+            )
         except:
-
             add_error(
                 validation_errors,
                 invalid_row_numbers,
                 row_no,
                 "Invalid Activity End date"
             )
-
             continue
 
-        # --------------------------------------
+        # -------------------------
         # Start Date must belong to
-        # selected Month & Year
-        # --------------------------------------
-        if (
-            start_date.strftime("%b") != selected_month
-            or
-            start_date.year != int(selected_year)
-        ):
-
+        # selected upload month/year
+        # -------------------------
+        if start_date.strftime("%b") != selected_month:
             add_error(
                 validation_errors,
                 invalid_row_numbers,
                 row_no,
-                f"Activity Start date must belong to {selected_month}-{selected_year}"
+                f"Activity Start date must belong to {selected_month}"
             )
 
-        # --------------------------------------
-        # End Date cannot be before Start Date
-        # --------------------------------------
-        if end_date < start_date:
+        if start_date.year != int(selected_year):
+            add_error(
+                validation_errors,
+                invalid_row_numbers,
+                row_no,
+                f"Activity Start date must belong to {selected_year}"
+            )
 
+        # -------------------------
+        # End Date cannot be before
+        # Start Date
+        # -------------------------
+        if end_date < start_date:
             add_error(
                 validation_errors,
                 invalid_row_numbers,
                 row_no,
                 "Activity End date cannot be before Activity Start date"
             )
-
 
 # ==========================================
 # MASTER VALIDATION
