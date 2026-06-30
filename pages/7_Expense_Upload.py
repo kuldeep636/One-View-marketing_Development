@@ -134,6 +134,30 @@ if st.button(
 
     st.success("✅ Template validated successfully.")
 
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric("Total Rows", len(df_upload))
+    
+    with col2:
+        st.metric("Total Columns", len(df_upload.columns))
+    
+    with col3:
+        st.metric(
+            "Total Amount",
+            f"₹ {df_upload['AMT(W/o GST)'].sum():,.0f}"
+        )
+    
+    st.divider()
+    
+    st.subheader("Preview")
+    
+    st.dataframe(
+        df_upload,
+        use_container_width=True,
+        hide_index=True
+    )
+
     st.session_state["upload_zone"] = zone
     st.session_state["upload_brand"] = brand
     st.session_state["uploaded_expense_file"] = uploaded_file
