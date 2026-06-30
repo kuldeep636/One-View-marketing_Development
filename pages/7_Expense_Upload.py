@@ -100,6 +100,54 @@ if len(brand_list) == 1:
 else:
     brand = st.selectbox("Select Brand", brand_list)
 
+
+# ==================================
+# YEAR
+# ==================================
+
+year_list = sorted(
+    expense_df["Year"]
+    .dropna()
+    .astype(str)
+    .unique()
+    .tolist(),
+    reverse=True
+)
+
+year = st.selectbox(
+    "Select Year",
+    year_list
+)
+
+# ==================================
+# MONTH
+# ==================================
+
+month_order = [
+    "January", "February", "March",
+    "April", "May", "June",
+    "July", "August", "September",
+    "October", "November", "December"
+]
+
+available_months = (
+    expense_df["Month"]
+    .dropna()
+    .astype(str)
+    .unique()
+    .tolist()
+)
+
+month_list = [
+    m for m in month_order
+    if m in available_months
+]
+
+month = st.selectbox(
+    "Select Month",
+    month_list
+)
+
 # ==================================
 # FILE UPLOAD
 # ==================================
