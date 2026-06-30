@@ -63,55 +63,73 @@ The system will automatically generate:
 st.info(
     f"Step {st.session_state.expense_upload_step} of 5"
 )
-# -----------------------------
-# STEP 1 : Upload Expense File
-# -----------------------------
+# ==============================
+# STEP 1 : Upload File
+# ==============================
 
-if st.session_state.expense_upload_step == 1:
+users_df = load_users()
 
-    st.subheader("Step 1 • Upload Expense File")
+# Zone List
+zone_list = sorted(
+    users_df["Zone"]
+    .dropna()
+    .unique()
+    .tolist()
+)
 
-    uploaded_file = st.file_uploader(
-        "Choose Expense Excel File",
-        type=["xlsx", "xls"],
-        help="Upload the monthly Marketing Expense Sheet."
+zone = st.selectbox(
+    "Select Zone",
+    zone_list,
+    index=None,
+    placeholder="Choose Zone"
+)
+
+brand = None
+
+if zone:
+
+    brand_list = sorted(
+        users_df[
+            users_df["Zone"] == zone
+        ]["Brand"]
+        .dropna()
+        .unique()
+        .tolist()
     )
 
-    if uploaded_file:
+    brand = st.selectbox(
+        "Select Brand",
+        brand_list,
+        index=None,
+        placeholder="Choose Brand"
+    )
 
-        file_size = uploaded_file.size / (1024 * 1024)
+uploaded_file = st.file_uploader(
+    "Upload Expense Excel",
+    type=["xlsx"],
+    accept_multiple_files=False
+)
 
-        col1, col2 = st.columns(2)
+if st.button(
+    "Validate File",
+    type="primary",
+    use_container_width=True
+):
 
-        with col1:
-            st.success("✅ File Selected")
+    if not zone:
+        st.error("Please select Zone.")
+        st.stop()
 
-            st.write(f"**File Name:** {uploaded_file.name}")
-            st.write(f"**File Size:** {file_size:.2f} MB")
+    if not brand:
+        st.error("Please select Brand.")
+        st.stop()
 
-        with col2:
-            st.info(
-                """
-                **Next Step**
-                
-                The uploaded file will be validated for:
-                
-                • Required columns
-                
-                • Blank rows
-                
-                • Duplicate records
-                
-                • Data format
-                """
-            )
+    if uploaded_file is None:
+        st.error("Please upload an Excel file.")
+        st.stop()
 
-        st.session_state.uploaded_expense_file = uploaded_file
+    st.session_state.zone = zone
+    st.session_state.brand = brand
+    st.session_state.uploaded_expense_file = uploaded_file
 
-        if st.button(
-            "Next ➜",
-            type="primary",
-            use_container_width=True
-        ):
-            st.session_state.expense_upload_step = 2
-            st.rerun()
+    st.success("Step 1 completed successfully.")
