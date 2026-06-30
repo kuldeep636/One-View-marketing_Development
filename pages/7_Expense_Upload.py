@@ -142,3 +142,19 @@ uploaded_file = st.file_uploader(
     "Upload Expense Excel",
     type=["xlsx"]
 )
+
+if st.button(
+    "Validate File",
+    type="primary",
+    use_container_width=True
+):
+
+    if uploaded_file is None:
+        st.error("Please upload an Excel file.")
+        st.stop()
+
+    st.session_state["upload_zone"] = zone
+    st.session_state["upload_brand"] = brand
+    st.session_state["uploaded_expense_file"] = uploaded_file
+
+    st.success("File uploaded successfully. Ready for validation.")
