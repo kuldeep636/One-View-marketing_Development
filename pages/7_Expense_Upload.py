@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-
 from utils.sidebar import render_navigation
 from utils.access import apply_role_access
 from utils.validation import validate_expense_required_columns
@@ -12,19 +11,17 @@ from utils.ui import (
     inject_css,
     page_header
 )
-if not st.session_state.get(
-    "logged_in",
-    False
-):
-    st.warning(
-        "Please login first."
-    )
+
+# Page config MUST be the first Streamlit command
+st.set_page_config(
+    page_title="Expense Upload Wizard",
+    page_icon="📤",
+    layout="wide"
+)
+
+if not st.session_state.get("logged_in", False):
+    st.warning("Please login first.")
     st.stop()
-    st.set_page_config(
-        page_title="Expense Upload Wizard",
-        page_icon="📤",
-        layout="wide"
-    )
 
 inject_css()
 render_navigation()
@@ -32,19 +29,14 @@ page_header(
     "📤 Expense Upload Wizard",
     "Upload Marketing Expense Data"
 )
-if "expense_upload_step" not in st.session_state:
 
+if "expense_upload_step" not in st.session_state:
     st.session_state.expense_upload_step = 1
 
-with st.expander(
-    "📖 Upload Guide",
-    expanded=True
-):
-
+with st.expander("📖 Upload Guide", expanded=True):
     st.markdown(
         """
 ### Before Upload
-
 - Select Year
 - Select Month
 - Select Zone
@@ -52,7 +44,6 @@ with st.expander(
 - Upload the Expense Excel
 
 The system will automatically generate:
-
 - Quarter
 - GST
 - Total Amount
@@ -63,26 +54,19 @@ The system will automatically generate:
 - Upload Timestamp
         """
     )
-    
-st.info(
-    f"Step {st.session_state.expense_upload_step} of 5"
-)
+
+st.info(f"Step {st.session_state.expense_upload_step} of 5")
+
 # ==================================
 # LOAD EXPENSE DATA
 # ==================================
-
 expense_df = load_expense_data()
-
-# Apply Role Access
-expense_df = apply_role_access(expense_df)
-
-# Apply Role Access
+# Apply Role Access (removed duplicate call)
 expense_df = apply_role_access(expense_df)
 
 # ==================================
 # ZONE
 # ==================================
-
 zone_list = sorted(
     expense_df["Zone"]
     .dropna()
@@ -92,29 +76,15 @@ zone_list = sorted(
 )
 
 if len(zone_list) == 1:
-
     zone = zone_list[0]
-
-    st.text_input(
-        "Zone",
-        value=zone,
-        disabled=True
-    )
-
+    st.text_input("Zone", value=zone, disabled=True)
 else:
-
-    zone = st.selectbox(
-        "Select Zone",
-        zone_list
-    )
+    zone = st.selectbox("Select Zone", zone_list)
 
 # ==================================
 # BRAND
 # ==================================
-
-brand_df = expense_df[
-    expense_df["Zone"] == zone
-]
+brand_df = expense_df[expense_df["Zone"] == zone]
 
 brand_list = sorted(
     brand_df["Brand"]
@@ -125,26 +95,14 @@ brand_list = sorted(
 )
 
 if len(brand_list) == 1:
-
     brand = brand_list[0]
-
-    st.text_input(
-        "Brand",
-        value=brand,
-        disabled=True
-    )
-
+    st.text_input("Brand", value=brand, disabled=True)
 else:
-
-    brand = st.selectbox(
-        "Select Brand",
-        brand_list
-    )
+    brand = st.selectbox("Select Brand", brand_list)
 
 # ==================================
 # FILE UPLOAD
 # ==================================
-
 uploaded_file = st.file_uploader(
     "Upload Expense Excel",
     type=["xlsx"]
@@ -155,7 +113,6 @@ if st.button(
     type="primary",
     use_container_width=True
 ):
-
     if uploaded_file is None:
         st.error("Please upload an Excel file.")
         st.stop()
