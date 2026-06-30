@@ -321,14 +321,11 @@ EXPENSE_REQUIRED_COLUMNS = [
     "Description of Work",
     "State",
     "City",
-    "Quarter",
-    "Year",
-    "Month",
     "Activity Start date",
     "Activity End date",
     "AMT(W/o GST)",
     "GST%",
-    "OEM Support",
+    "OEM Support (W/o GST)",
     "Support Remarks"
 ]
 
