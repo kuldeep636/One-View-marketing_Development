@@ -3,7 +3,10 @@ import pandas as pd
 
 from utils.sidebar import render_navigation
 from utils.access import apply_role_access
-from utils.gsheet import load_users
+from utils.gsheet import (
+    load_users,
+    load_expense_data
+)
 from utils.ui import (
     inject_css,
     page_header
