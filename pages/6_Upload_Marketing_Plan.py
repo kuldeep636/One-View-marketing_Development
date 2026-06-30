@@ -141,3 +141,194 @@ st.title("📤 Marketing Plan Upload Wizard")
 st.caption(
     "Upload monthly marketing plans for your assigned Zone and Brand."
 )
+# ==================================
+# UPLOAD GUIDE
+# ==================================
+
+with st.expander(
+    "📖 Upload Guide",
+    expanded=True
+):
+
+    st.markdown(
+        """
+### Before Upload
+
+1. Select Year
+2. Select Month
+3. Verify your Zone & Brand
+4. Download the Sample Template
+5. Fill only the sample columns
+6. Upload the completed Excel
+
+### Validation Performed
+
+- Required Columns
+- Blank Values
+- Vertical Validation
+- Activity Type Validation
+- Activity Sub Type Validation
+- Investment Validation
+- Activity Start Date Validation
+- Activity End Date Validation
+
+Only valid records can be uploaded.
+"""
+    )
+
+# ==================================
+# DOWNLOAD SAMPLE TEMPLATE
+# ==================================
+
+sample_df = create_sample_template()
+
+buffer = BytesIO()
+
+with pd.ExcelWriter(
+    buffer,
+    engine="openpyxl"
+) as writer:
+
+    sample_df.to_excel(
+        writer,
+        index=False
+    )
+
+st.download_button(
+
+    label="📥 Download Sample Template",
+
+    data=buffer.getvalue(),
+
+    file_name="Marketing_Plan_Template.xlsx",
+
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+
+    use_container_width=True
+
+)
+
+st.divider()
+
+# ==================================
+# UPLOAD DETAILS
+# ==================================
+
+st.subheader(
+    "Upload Details"
+)
+
+col1, col2 = st.columns(2)
+
+# ----------------------------------
+# YEAR
+# ----------------------------------
+
+with col1:
+
+    year = st.selectbox(
+
+        "Select Year",
+
+        [2025, 2026, 2027, 2028, 2029]
+
+    )
+
+# ----------------------------------
+# MONTH
+# ----------------------------------
+
+with col2:
+
+    month = st.selectbox(
+
+        "Select Month",
+
+        [
+
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec"
+
+        ]
+
+    )
+
+# ==================================
+# ROLE BASED ACCESS
+# ==================================
+
+if st.session_state["role"] in [
+
+    "President",
+    "Admin"
+
+]:
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        zone = st.selectbox(
+
+            "Zone",
+
+            [
+
+                "East",
+                "West",
+                "North",
+                "South",
+                "Gujarat",
+                "MP&Rajasthan"
+
+            ]
+
+        )
+
+    with col2:
+
+        brand = st.text_input(
+            "Brand"
+        )
+
+elif st.session_state["role"] == "Zone Head":
+
+    zone = st.session_state["zone_access"]
+
+    st.info(
+        f"Zone : {zone}"
+    )
+
+    brand = st.text_input(
+        "Brand"
+    )
+
+elif st.session_state["role"] == "Brand Head":
+
+    zone = st.session_state["zone_access"]
+
+    brand = st.session_state["brand_access"]
+
+    st.info(
+        f"Zone : {zone}"
+    )
+
+    st.info(
+        f"Brand : {brand}"
+    )
+
+st.success(
+    f"Selected Upload Period : {month}-{year}"
+)
+
+st.divider()
