@@ -69,10 +69,11 @@ st.info(
 # ==================================
 # LOAD EXPENSE DATA
 # ==================================
-from utils.gsheet import (
-    load_users,
-    load_expense_data
-)
+
+expense_df = load_expense_data()
+
+# Apply Role Access
+expense_df = apply_role_access(expense_df)
 
 # Apply Role Access
 expense_df = apply_role_access(expense_df)
