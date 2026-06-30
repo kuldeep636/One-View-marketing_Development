@@ -306,3 +306,45 @@ def validate_upload(df_upload, selected_month, selected_year, activity_subtypes)
     invalid_row_numbers = sorted(list(invalid_row_numbers))
 
     return validation_errors, invalid_row_numbers
+
+
+# ==========================================
+# EXPENSE UPLOAD VALIDATION
+# ==========================================
+
+EXPENSE_REQUIRED_COLUMNS = [
+    "Location",
+    "Vertical",
+    "Activity type",
+    "Vendor",
+    "Bifurcation",
+    "Description of Work",
+    "State",
+    "City",
+    "Quarter",
+    "Year",
+    "Month",
+    "Activity Start date",
+    "Activity End date",
+    "AMT(W/o GST)",
+    "GST%",
+    "OEM Support",
+    "Support Remarks"
+]
+
+
+def validate_expense_required_columns(df):
+
+    missing_columns = [
+        col
+        for col in EXPENSE_REQUIRED_COLUMNS
+        if col not in df.columns
+    ]
+
+    extra_columns = [
+        col
+        for col in df.columns
+        if col not in EXPENSE_REQUIRED_COLUMNS
+    ]
+
+    return missing_columns, extra_columns
