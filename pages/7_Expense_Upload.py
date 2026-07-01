@@ -3,7 +3,10 @@ import pandas as pd
 from utils.sidebar import render_navigation
 from utils.reporting import MONTH_ORDER_CALENDAR
 from utils.access import apply_role_access
-from utils.validation import validate_expense_required_columns
+from utils.validation import (
+    validate_expense_required_columns,
+    validate_expense_upload
+)
 from utils.gsheet import (
     load_users,
     load_expense_data
@@ -45,15 +48,14 @@ with st.expander("📖 Upload Guide", expanded=True):
 - Upload the Expense Excel
 
 The system will automatically generate:
-- Quarter
-- GST
-- Total Amount
+- The system will automatically generate:
 - Net Expenses
-- Calendar Fields
-- Financial Fields
+- Calendar Quarter
+- Financial Quarter
+- Financial Year
 - Uploaded By
 - Upload Timestamp
-        """
+    """
     )
 
 st.info(f"Step {st.session_state.expense_upload_step} of 5")
@@ -111,17 +113,9 @@ with col2:
         brand = st.selectbox("Select Brand", brand_list)
 
 # MONTH (outside columns)
-available_months = (
-    expense_df["Month"]
-    .dropna()
-    .astype(str)
-    .unique()
-    .tolist()
-)
-month_list = [m for m in MONTH_ORDER_CALENDAR if m in available_months]
 month = st.selectbox(
     "Select Month",
-    month_list
+    MONTH_ORDER_CALENDAR
 )
 
 with st.expander("🔍 Validation Guide", expanded=False):
@@ -191,17 +185,26 @@ if st.button("Validate File", type="primary", use_container_width=True):
     df_upload = pd.read_excel(uploaded_file)
 
     # Validate Columns
-    missing_columns, extra_columns = validate_expense_required_columns(df_upload)
-    if missing_columns:
-        st.error("❌ Missing Required Columns")
-        st.write(missing_columns)
-        st.stop()
+   validation_errors, invalid_rows, extra_columns = (
+    validate_expense_upload(df_upload)
+)
 
-    if extra_columns:
-        st.warning("⚠️ Extra Columns Found")
-        st.write(extra_columns)
+if validation_errors:
 
-    st.success("✅ Template validated successfully.")
+    st.error("❌ Validation Failed")
+
+    for error in validation_errors:
+        st.write(error)
+
+    st.stop()
+
+if extra_columns:
+
+    st.warning("⚠️ Extra Columns Found")
+
+    st.write(extra_columns)
+
+    
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -222,16 +225,13 @@ if st.button("Validate File", type="primary", use_container_width=True):
         hide_index=True
     )
 
-    # Financial Validation
-    calc_errors = validate_expense_calculations(df_upload)
-    if calc_errors:
-        st.error("Financial validation failed.")
-        for err in calc_errors:
-            st.write(err)
-        st.stop()
+  st.success("✅ Template validated successfully.")
 
     # Save to session state
     st.session_state["upload_zone"] = zone
     st.session_state["upload_brand"] = brand
+    st.session_state["upload_year"] = year
+    st.session_state["upload_month"] = month
     st.session_state["uploaded_expense_file"] = uploaded_file
     st.session_state["expense_df"] = df_upload
+
