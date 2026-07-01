@@ -115,14 +115,14 @@ with col2:
     else:
         brand = st.selectbox("Select Brand", brand_list)
 
-    # Month
-    available_months = (
-        expense_df["Month"]
-        .dropna()
-        .astype(str)
-        .unique()
-        .tolist()
-    )
+# ==================================
+# MONTH
+# ==================================
+
+month = st.selectbox(
+    "Select Month",
+    MONTH_ORDER_CALENDAR
+)
     month_list = [
         month for month in MONTH_ORDER_CALENDAR if month in available_months
     ]
