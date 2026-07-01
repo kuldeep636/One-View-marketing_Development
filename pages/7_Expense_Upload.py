@@ -109,15 +109,17 @@ with col1:
     # Year
     # --------------------------
 
-    year_list = sorted(
-        expense_df["Year"]
-        .dropna()
-        .astype(str)
-        .unique()
-        .tolist(),
-        reverse=True
-    )
+    from datetime import datetime
 
+    current_year = datetime.now().year
+
+    year_list = [
+        str(year)
+        for year in range(
+            current_year - 2,
+            current_year + 3
+        )
+    ]
     year = st.selectbox(
         "Select Year",
         year_list
@@ -182,9 +184,9 @@ with col2:
     ]
 
     month = st.selectbox(
-        "Select Month",
-        month_list
-    )
+    "Select Month",
+    MONTH_ORDER_CALENDAR
+)
 # ==================================
 # FILE UPLOAD
 # ==================================
