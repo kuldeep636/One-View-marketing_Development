@@ -1,52 +1,84 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
+
 from utils.sidebar import render_navigation
 from utils.reporting import MONTH_ORDER_CALENDAR
 from utils.access import apply_role_access
 from utils.validation import (
     validate_expense_upload
 )
+from utils.expense import prepare_expense_data
 from utils.gsheet import (
     load_expense_data,
     append_dataframe_to_sheet
 )
-from utils.expense import prepare_expense_data
-from utils.gsheet import load_expense_datafrom utils.ui import (
+from utils.ui import (
     inject_css,
     page_header
 )
 
-# Page config MUST be the first Streamlit command
+# ==================================
+# PAGE CONFIG
+# ==================================
+
 st.set_page_config(
     page_title="Expense Upload Wizard",
     page_icon="📤",
     layout="wide"
 )
 
-if not st.session_state.get("logged_in", False):
+# ==================================
+# LOGIN CHECK
+# ==================================
+
+if not st.session_state.get(
+    "logged_in",
+    False
+):
     st.warning("Please login first.")
     st.stop()
 
+# ==================================
+# UI
+# ==================================
+
 inject_css()
+
 render_navigation()
+
 page_header(
     "📤 Expense Upload Wizard",
     "Upload Marketing Expense Data"
 )
 
 if "expense_upload_step" not in st.session_state:
+
     st.session_state.expense_upload_step = 1
 
-with st.expander("📖 Upload Guide", expanded=True):
+# ==================================
+# UPLOAD GUIDE
+# ==================================
+
+with st.expander(
+    "📖 Upload Guide",
+    expanded=True
+):
+
     st.markdown(
         """
 ### Before Upload
-- Select Year
-- Select Month
+
 - Select Zone
 - Select Brand
-- Upload the Expense Excel
-The system will automatically generate:
+- Select Year
+- Select Month
+- Upload Expense Excel
+
+### System
+
+The following fields will be generated automatically:
+
 - Net Expenses
 - Calendar Quarter
 - Financial Quarter
@@ -56,22 +88,32 @@ The system will automatically generate:
         """
     )
 
-st.info(f"Step {st.session_state.expense_upload_step} of 5")
+st.info(
+    f"Step {st.session_state.expense_upload_step} of 5"
+)
 
 # ==================================
 # LOAD EXPENSE DATA
 # ==================================
+
 expense_df = load_expense_data()
-expense_df = apply_role_access(expense_df)
+
+expense_df = apply_role_access(
+    expense_df
+)
 
 # ==================================
 # FILTERS
 # ==================================
+
 col1, col2 = st.columns(2)
 
+# -----------------------------
 # LEFT COLUMN
+# -----------------------------
+
 with col1:
-    # Zone
+
     zone_list = sorted(
         expense_df["Zone"]
         .dropna()
@@ -79,24 +121,49 @@ with col1:
         .unique()
         .tolist()
     )
+
     if len(zone_list) == 1:
+
         zone = zone_list[0]
-        st.text_input("Zone", value=zone, disabled=True)
+
+        st.text_input(
+            "Zone",
+            value=zone,
+            disabled=True
+        )
+
     else:
-        zone = st.selectbox("Select Zone", zone_list)
 
-    # Year
-    from datetime import datetime
+        zone = st.selectbox(
+            "Select Zone",
+            zone_list
+        )
+
     current_year = datetime.now().year
-    year_list = [
-        str(year) for year in range(current_year - 2, current_year + 3)
-    ]
-    year = st.selectbox("Select Year", year_list)
 
+    year_list = [
+        str(year)
+        for year in range(
+            current_year - 2,
+            current_year + 3
+        )
+    ]
+
+    year = st.selectbox(
+        "Select Year",
+        year_list
+    )
+
+# -----------------------------
 # RIGHT COLUMN
+# -----------------------------
+
 with col2:
-    # Brand
-    brand_df = expense_df[expense_df["Zone"] == zone]
+
+    brand_df = expense_df[
+        expense_df["Zone"] == zone
+    ]
+
     brand_list = sorted(
         brand_df["Brand"]
         .dropna()
@@ -104,50 +171,96 @@ with col2:
         .unique()
         .tolist()
     )
-    if len(brand_list) == 1:
-        brand = brand_list[0]
-        st.text_input("Brand", value=brand, disabled=True)
-    else:
-        brand = st.selectbox("Select Brand", brand_list)
 
-    # MONTH
+    if len(brand_list) == 1:
+
+        brand = brand_list[0]
+
+        st.text_input(
+            "Brand",
+            value=brand,
+            disabled=True
+        )
+
+    else:
+
+        brand = st.selectbox(
+            "Select Brand",
+            brand_list
+        )
+
     month = st.selectbox(
         "Select Month",
         MONTH_ORDER_CALENDAR
     )
 
-with st.expander("🔍 Validation Guide", expanded=False):
-    st.markdown("""
-### The system will validate the following before upload
-#### 📄 Template Validation
+# ==================================
+# VALIDATION GUIDE
+# ==================================
+
+with st.expander(
+    "🔍 Validation Guide",
+    expanded=False
+):
+
+    st.markdown(
+        """
+### Template Validation
+
 - Required columns must be present.
-- Extra columns will be ignored.
-#### 💰 Financial Validation
-- GST will be verified.
+- Extra columns are allowed.
+
+### Financial Validation
+
+- GST Amount will be verified.
 - Total Amount will be verified.
-#### ⚙️ System Generated
+
+### System Generated
+
 The following fields will be generated automatically:
-- Zone, Brand, Year, Month
+
+- Zone
+- Brand
+- Year
+- Month
 - Net Expenses
-- Calendar Quarter, Financial Quarter
+- Calendar Quarter
+- Financial Quarter
 - Financial Year
-- Uploaded By, Upload Timestamp
-#### ❌ Upload will stop if
+- Uploaded By
+- Upload Timestamp
+
+### Upload will stop if
+
 - Required columns are missing.
-- GST calculation is incorrect.
-- Total Amount calculation is incorrect.
-""")
+- GST Amount is incorrect.
+- Total Amount is incorrect.
+"""
+    )
 
 # ==================================
-# UPLOAD SECTION
+# FILE UPLOAD
 # ==================================
+
 st.divider()
-st.subheader("📂 Upload File")
-col1, col2 = st.columns([1, 2])
+
+st.subheader(
+    "📂 Upload File"
+)
+
+col1, col2 = st.columns(
+    [1, 2]
+)
 
 with col1:
+
     try:
-        with open("assets/Expense_Upload_Template.xlsx", "rb") as file:
+
+        with open(
+            "assets/Expense_Upload_Template.xlsx",
+            "rb"
+        ) as file:
+
             st.download_button(
                 label="📥 Download Sample Template",
                 data=file,
@@ -155,49 +268,83 @@ with col1:
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True
             )
+
     except FileNotFoundError:
-        st.warning("Template file not found.")
+
+        st.warning(
+            "Template file not found."
+        )
 
 with col2:
+
     uploaded_file = st.file_uploader(
         "Upload Expense Excel",
         type=["xlsx"],
         label_visibility="collapsed"
     )
+
     if uploaded_file:
-        st.success(f"Selected File : {uploaded_file.name}")
+
+        st.success(
+            f"Selected File : {uploaded_file.name}"
+        )
 
 # ==================================
-# VALIDATION BUTTON
+# VALIDATE FILE
 # ==================================
-if st.button("Validate File", type="primary", use_container_width=True):
+
+if st.button(
+    "Validate File",
+    type="primary",
+    use_container_width=True
+):
+
     if uploaded_file is None:
-        st.error("Please upload an Excel file.")
+
+        st.error(
+            "Please upload an Excel file."
+        )
+
         st.stop()
 
-    # Read Excel
     df_upload = (
         pd.read_excel(uploaded_file)
         .dropna(how="all")
         .reset_index(drop=True)
     )
 
-    # Full Validation
-    validation_errors, invalid_rows, extra_columns = validate_expense_upload(df_upload)
+    validation_errors, invalid_rows, extra_columns = (
+        validate_expense_upload(
+            df_upload
+        )
+    )
 
     if validation_errors:
-        st.error("❌ Validation Failed")
+
+        st.error(
+            "❌ Validation Failed"
+        )
+
         for error in validation_errors:
+
             st.write(error)
+
         st.stop()
 
     if extra_columns:
-        st.warning("⚠️ Extra Columns Found")
-        st.write(extra_columns)
+
+        st.warning(
+            "⚠️ Extra Columns Found"
+        )
+
+        st.write(
+            extra_columns
+        )
 
     # ==================================
     # PREPARE DATA
     # ==================================
+
     df_upload = prepare_expense_data(
         df=df_upload,
         zone=zone,
@@ -207,73 +354,369 @@ if st.button("Validate File", type="primary", use_container_width=True):
         uploaded_by=st.session_state["user_name"]
     )
 
-    st.success("✅ All validations completed successfully.")
+    st.success(
+        "✅ All validations completed successfully."
+    )
 
     col1, col2, col3 = st.columns(3)
+
     with col1:
-        st.metric("Total Rows", len(df_upload))
+
+        st.metric(
+            "Total Rows",
+            len(df_upload)
+        )
 
     with col2:
-        st.metric("Total Columns", len(df_upload.columns))
 
-    with col3:
         st.metric(
-            "Total Amount",
+            "Gross Expense",
             f"₹ {df_upload['AMT(W/o GST)'].sum():,.0f}"
         )
 
-    st.divider()
-    st.subheader("📋 Upload Preview")
-    st.divider()
+    with col3:
 
-     st.caption(
-            "This is the final data that will be uploaded to Google Sheets."
+        st.metric(
+            "Net Expense",
+            f"₹ {df_upload['Net Expenses'].sum():,.0f}"
         )
 
-        st.dataframe(
-            df_upload,
-            use_container_width=True,
-            hide_index=True
-        )
+    st.divider()
 
-    upload = st.button(
-        "🚀 Upload Data",
-        type="primary",
-        use_container_width=True
+    st.subheader(
+        "📋 Upload Preview"
     )
 
-    if upload:
-        success = append_dataframe_to_sheet(
-            "Expenes",
-            df_upload
+    st.caption(
+        "This is the final data that will be uploaded to Google Sheets."
+    )
+
+    st.dataframe(
+        df_upload,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.divider()
+
+The following fields will be generated automatically:
+
+- Net Expenses
+- Calendar Quarter
+- Financial Quarter
+- Financial Year
+- Uploaded By
+- Upload Timestamp
+        """
+    )
+
+st.info(
+    f"Step {st.session_state.expense_upload_step} of 5"
+)
+
+# ==================================
+# LOAD EXPENSE DATA
+# ==================================
+
+expense_df = load_expense_data()
+
+expense_df = apply_role_access(
+    expense_df
+)
+
+# ==================================
+# FILTERS
+# ==================================
+
+col1, col2 = st.columns(2)
+
+# -----------------------------
+# LEFT COLUMN
+# -----------------------------
+
+with col1:
+
+    zone_list = sorted(
+        expense_df["Zone"]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist()
+    )
+
+    if len(zone_list) == 1:
+
+        zone = zone_list[0]
+
+        st.text_input(
+            "Zone",
+            value=zone,
+            disabled=True
         )
-        if success:
-            st.success(
-                "✅ Expense data uploaded successfully."
-            )
-        else:
-            st.error(
-                "Upload failed."
+
+    else:
+
+        zone = st.selectbox(
+            "Select Zone",
+            zone_list
+        )
+
+    current_year = datetime.now().year
+
+    year_list = [
+        str(year)
+        for year in range(
+            current_year - 2,
+            current_year + 3
+        )
+    ]
+
+    year = st.selectbox(
+        "Select Year",
+        year_list
+    )
+
+# -----------------------------
+# RIGHT COLUMN
+# -----------------------------
+
+with col2:
+
+    brand_df = expense_df[
+        expense_df["Zone"] == zone
+    ]
+
+    brand_list = sorted(
+        brand_df["Brand"]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist()
+    )
+
+    if len(brand_list) == 1:
+
+        brand = brand_list[0]
+
+        st.text_input(
+            "Brand",
+            value=brand,
+            disabled=True
+        )
+
+    else:
+
+        brand = st.selectbox(
+            "Select Brand",
+            brand_list
+        )
+
+    month = st.selectbox(
+        "Select Month",
+        MONTH_ORDER_CALENDAR
+    )
+
+# ==================================
+# VALIDATION GUIDE
+# ==================================
+
+with st.expander(
+    "🔍 Validation Guide",
+    expanded=False
+):
+
+    st.markdown(
+        """
+### Template Validation
+
+- Required columns must be present.
+- Extra columns are allowed.
+
+### Financial Validation
+
+- GST Amount will be verified.
+- Total Amount will be verified.
+
+### System Generated
+
+The following fields will be generated automatically:
+
+- Zone
+- Brand
+- Year
+- Month
+- Net Expenses
+- Calendar Quarter
+- Financial Quarter
+- Financial Year
+- Uploaded By
+- Upload Timestamp
+
+### Upload will stop if
+
+- Required columns are missing.
+- GST Amount is incorrect.
+- Total Amount is incorrect.
+"""
+    )
+
+# ==================================
+# FILE UPLOAD
+# ==================================
+
+st.divider()
+
+st.subheader(
+    "📂 Upload File"
+)
+
+col1, col2 = st.columns(
+    [1, 2]
+)
+
+with col1:
+
+    try:
+
+        with open(
+            "assets/Expense_Upload_Template.xlsx",
+            "rb"
+        ) as file:
+
+            st.download_button(
+                label="📥 Download Sample Template",
+                data=file,
+                file_name="Expense_Upload_Template.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
             )
 
-       
-        st.balloons()
+    except FileNotFoundError:
+
+        st.warning(
+            "Template file not found."
+        )
+
+with col2:
+
+    uploaded_file = st.file_uploader(
+        "Upload Expense Excel",
+        type=["xlsx"],
+        label_visibility="collapsed"
+    )
+
+    if uploaded_file:
 
         st.success(
-            f"""
-Successfully uploaded
-{len(df_upload)} records.
-Zone : {zone}
-Brand : {brand}
-Month : {month}
-Year : {year}
-"""
+            f"Selected File : {uploaded_file.name}"
         )
 
-    # Save to session state
-    st.session_state["upload_zone"] = zone
-    st.session_state["upload_brand"] = brand
-    st.session_state["upload_year"] = year
-    st.session_state["upload_month"] = month
-    st.session_state["uploaded_expense_file"] = uploaded_file
-    st.session_state["expense_df"] = df_upload
+# ==================================
+# VALIDATE FILE
+# ==================================
+
+if st.button(
+    "Validate File",
+    type="primary",
+    use_container_width=True
+):
+
+    if uploaded_file is None:
+
+        st.error(
+            "Please upload an Excel file."
+        )
+
+        st.stop()
+
+    df_upload = (
+        pd.read_excel(uploaded_file)
+        .dropna(how="all")
+        .reset_index(drop=True)
+    )
+
+    validation_errors, invalid_rows, extra_columns = (
+        validate_expense_upload(
+            df_upload
+        )
+    )
+
+    if validation_errors:
+
+        st.error(
+            "❌ Validation Failed"
+        )
+
+        for error in validation_errors:
+
+            st.write(error)
+
+        st.stop()
+
+    if extra_columns:
+
+        st.warning(
+            "⚠️ Extra Columns Found"
+        )
+
+        st.write(
+            extra_columns
+        )
+
+    # ==================================
+    # PREPARE DATA
+    # ==================================
+
+    df_upload = prepare_expense_data(
+        df=df_upload,
+        zone=zone,
+        brand=brand,
+        year=year,
+        month=month,
+        uploaded_by=st.session_state["user_name"]
+    )
+
+    st.success(
+        "✅ All validations completed successfully."
+    )
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+
+        st.metric(
+            "Total Rows",
+            len(df_upload)
+        )
+
+    with col2:
+
+        st.metric(
+            "Gross Expense",
+            f"₹ {df_upload['AMT(W/o GST)'].sum():,.0f}"
+        )
+
+    with col3:
+
+        st.metric(
+            "Net Expense",
+            f"₹ {df_upload['Net Expenses'].sum():,.0f}"
+        )
+
+    st.divider()
+
+    st.subheader(
+        "📋 Upload Preview"
+    )
+
+    st.caption(
+        "This is the final data that will be uploaded to Google Sheets."
+    )
+
+    st.dataframe(
+        df_upload,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.divider()
