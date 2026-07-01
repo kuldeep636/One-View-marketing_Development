@@ -61,7 +61,6 @@ st.info(f"Step {st.session_state.expense_upload_step} of 5")
 # LOAD EXPENSE DATA
 # ==================================
 expense_df = load_expense_data()
-# Apply Role Access (removed duplicate call)
 expense_df = apply_role_access(expense_df)
 
 # ==================================
@@ -74,7 +73,6 @@ zone_list = sorted(
     .unique()
     .tolist()
 )
-
 if len(zone_list) == 1:
     zone = zone_list[0]
     st.text_input("Zone", value=zone, disabled=True)
@@ -85,7 +83,6 @@ else:
 # BRAND
 # ==================================
 brand_df = expense_df[expense_df["Zone"] == zone]
-
 brand_list = sorted(
     brand_df["Brand"]
     .dropna()
@@ -93,18 +90,15 @@ brand_list = sorted(
     .unique()
     .tolist()
 )
-
 if len(brand_list) == 1:
     brand = brand_list[0]
     st.text_input("Brand", value=brand, disabled=True)
 else:
     brand = st.selectbox("Select Brand", brand_list)
 
-
 # ==================================
 # YEAR
 # ==================================
-
 year_list = sorted(
     expense_df["Year"]
     .dropna()
@@ -113,23 +107,15 @@ year_list = sorted(
     .tolist(),
     reverse=True
 )
-
-year = st.selectbox(
-    "Select Year",
-    year_list
-)
+year = st.selectbox("Select Year", year_list)
 
 # ==================================
 # MONTH
 # ==================================
-
 month_order = [
-    "January", "February", "March",
-    "April", "May", "June",
-    "July", "August", "September",
-    "October", "November", "December"
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
 ]
-
 available_months = (
     expense_df["Month"]
     .dropna()
@@ -137,16 +123,8 @@ available_months = (
     .unique()
     .tolist()
 )
-
-month_list = [
-    m for m in month_order
-    if m in available_months
-]
-
-month = st.selectbox(
-    "Select Month",
-    month_list
-)
+month_list = [m for m in month_order if m in available_months]
+month = st.selectbox("Select Month", month_list)
 
 # ==================================
 # FILE UPLOAD
@@ -183,29 +161,33 @@ if st.button(
     st.success("✅ Template validated successfully.")
 
     col1, col2, col3 = st.columns(3)
-    
     with col1:
         st.metric("Total Rows", len(df_upload))
-    
     with col2:
         st.metric("Total Columns", len(df_upload.columns))
-    
     with col3:
         st.metric(
             "Total Amount",
             f"₹ {df_upload['AMT(W/o GST)'].sum():,.0f}"
         )
-    
+
     st.divider()
-    
     st.subheader("Preview")
-    
     st.dataframe(
         df_upload,
         use_container_width=True,
         hide_index=True
     )
 
+    # Financial Validation
+    calc_errors = validate_expense_calculations(df_upload)
+    if calc_errors:
+        st.error("Financial validation failed.")
+        for err in calc_errors:
+            st.write(err)
+        st.stop()
+
+    # Save to session state (only if everything passes)
     st.session_state["upload_zone"] = zone
     st.session_state["upload_brand"] = brand
     st.session_state["uploaded_expense_file"] = uploaded_file
