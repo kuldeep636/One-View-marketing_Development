@@ -4,13 +4,9 @@ from utils.sidebar import render_navigation
 from utils.reporting import MONTH_ORDER_CALENDAR
 from utils.access import apply_role_access
 from utils.validation import (
-    validate_expense_required_columns,
     validate_expense_upload
 )
-from utils.gsheet import (
-    load_users,
-    load_expense_data
-)
+from utils.gsheet import load_expense_data
 from utils.ui import (
     inject_css,
     page_header
@@ -48,9 +44,7 @@ with st.expander("📖 Upload Guide", expanded=True):
 - Upload the Expense Excel
 
 The system will automatically generate:
-- Quarter
-- GST
-- Total Amount
+- The system will automatically generate:
 - Net Expenses
 - Calendar Quarter
 - Financial Quarter
@@ -184,8 +178,11 @@ if st.button("Validate File", type="primary", use_container_width=True):
         st.stop()
 
     # Read Excel
-    df_upload = pd.read_excel(uploaded_file)
-
+    df_upload = (
+        pd.read_excel(uploaded_file)
+        .dropna(how="all")
+        .reset_index(drop=True)
+    )
     # Full Validation
     validation_errors, invalid_rows, extra_columns = validate_expense_upload(df_upload)
 
@@ -198,7 +195,7 @@ if st.button("Validate File", type="primary", use_container_width=True):
     if extra_columns:
         st.warning("⚠️ Extra Columns Found")
         st.write(extra_columns)
-
+    st.success("✅ All validations completed successfully.")
     st.success("✅ Template validated successfully.")
 
     col1, col2, col3 = st.columns(3)
