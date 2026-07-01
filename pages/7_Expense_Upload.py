@@ -48,14 +48,16 @@ with st.expander("📖 Upload Guide", expanded=True):
 - Upload the Expense Excel
 
 The system will automatically generate:
-- The system will automatically generate:
+- Quarter
+- GST
+- Total Amount
 - Net Expenses
 - Calendar Quarter
 - Financial Quarter
 - Financial Year
 - Uploaded By
 - Upload Timestamp
-    """
+        """
     )
 
 st.info(f"Step {st.session_state.expense_upload_step} of 5")
@@ -112,7 +114,7 @@ with col2:
     else:
         brand = st.selectbox("Select Brand", brand_list)
 
-# MONTH (outside columns)
+# MONTH
 month = st.selectbox(
     "Select Month",
     MONTH_ORDER_CALENDAR
@@ -184,27 +186,20 @@ if st.button("Validate File", type="primary", use_container_width=True):
     # Read Excel
     df_upload = pd.read_excel(uploaded_file)
 
-    # Validate Columns
-   validation_errors, invalid_rows, extra_columns = (
-    validate_expense_upload(df_upload)
-)
+    # Full Validation
+    validation_errors, invalid_rows, extra_columns = validate_expense_upload(df_upload)
 
-if validation_errors:
+    if validation_errors:
+        st.error("❌ Validation Failed")
+        for error in validation_errors:
+            st.write(error)
+        st.stop()
 
-    st.error("❌ Validation Failed")
+    if extra_columns:
+        st.warning("⚠️ Extra Columns Found")
+        st.write(extra_columns)
 
-    for error in validation_errors:
-        st.write(error)
-
-    st.stop()
-
-if extra_columns:
-
-    st.warning("⚠️ Extra Columns Found")
-
-    st.write(extra_columns)
-
-    
+    st.success("✅ Template validated successfully.")
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -225,8 +220,6 @@ if extra_columns:
         hide_index=True
     )
 
-  st.success("✅ Template validated successfully.")
-
     # Save to session state
     st.session_state["upload_zone"] = zone
     st.session_state["upload_brand"] = brand
@@ -234,4 +227,3 @@ if extra_columns:
     st.session_state["upload_month"] = month
     st.session_state["uploaded_expense_file"] = uploaded_file
     st.session_state["expense_df"] = df_upload
-
