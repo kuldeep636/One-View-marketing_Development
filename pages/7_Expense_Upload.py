@@ -321,3 +321,60 @@ if st.button(
         hide_index=True
     )
     st.divider()
+
+    # ==================================
+    # UPLOAD BUTTON
+    # ==================================
+
+    upload = st.button(
+        "🚀 Upload Data",
+        type="primary",
+        use_container_width=True
+    )
+
+    if upload:
+
+        success = append_dataframe_to_sheet(
+            "Expenes",
+            df_upload
+        )
+
+        if success:
+
+            st.success(
+                f"""
+✅ Expense data uploaded successfully.
+
+Records Uploaded : {len(df_upload)}
+
+Zone : {zone}
+
+Brand : {brand}
+
+Month : {month}
+
+Year : {year}
+"""
+            )
+
+            st.balloons()
+
+            # ==================================
+            # SAVE SESSION STATE
+            # ==================================
+
+            st.session_state["upload_zone"] = zone
+            st.session_state["upload_brand"] = brand
+            st.session_state["upload_year"] = year
+            st.session_state["upload_month"] = month
+            st.session_state["uploaded_expense_file"] = uploaded_file
+            st.session_state["expense_df"] = df_upload
+
+            # Refresh cached data
+            st.cache_data.clear()
+
+        else:
+
+            st.error(
+                "❌ Upload failed. Please try again."
+            )
