@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from utils.sidebar import render_navigation
+from utils.reporting import MONTH_ORDER_CALENDAR
 from utils.access import apply_role_access
 from utils.validation import validate_expense_required_columns
 from utils.gsheet import (
@@ -64,68 +65,126 @@ expense_df = load_expense_data()
 expense_df = apply_role_access(expense_df)
 
 # ==================================
-# ZONE
+# FILTERS
 # ==================================
-zone_list = sorted(
-    expense_df["Zone"]
-    .dropna()
-    .astype(str)
-    .unique()
-    .tolist()
-)
-if len(zone_list) == 1:
-    zone = zone_list[0]
-    st.text_input("Zone", value=zone, disabled=True)
-else:
-    zone = st.selectbox("Select Zone", zone_list)
 
-# ==================================
-# BRAND
-# ==================================
-brand_df = expense_df[expense_df["Zone"] == zone]
-brand_list = sorted(
-    brand_df["Brand"]
-    .dropna()
-    .astype(str)
-    .unique()
-    .tolist()
-)
-if len(brand_list) == 1:
-    brand = brand_list[0]
-    st.text_input("Brand", value=brand, disabled=True)
-else:
-    brand = st.selectbox("Select Brand", brand_list)
+col1, col2 = st.columns(2)
 
-# ==================================
-# YEAR
-# ==================================
-year_list = sorted(
-    expense_df["Year"]
-    .dropna()
-    .astype(str)
-    .unique()
-    .tolist(),
-    reverse=True
-)
-year = st.selectbox("Select Year", year_list)
+# ==============================
+# LEFT COLUMN
+# ==============================
 
-# ==================================
-# MONTH
-# ==================================
-month_order = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-]
-available_months = (
-    expense_df["Month"]
-    .dropna()
-    .astype(str)
-    .unique()
-    .tolist()
-)
-month_list = [m for m in month_order if m in available_months]
-month = st.selectbox("Select Month", month_list)
+with col1:
 
+    # --------------------------
+    # Zone
+    # --------------------------
+
+    zone_list = sorted(
+        expense_df["Zone"]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist()
+    )
+
+    if len(zone_list) == 1:
+
+        zone = zone_list[0]
+
+        st.text_input(
+            "Zone",
+            value=zone,
+            disabled=True
+        )
+
+    else:
+
+        zone = st.selectbox(
+            "Select Zone",
+            zone_list
+        )
+
+    # --------------------------
+    # Year
+    # --------------------------
+
+    year_list = sorted(
+        expense_df["Year"]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist(),
+        reverse=True
+    )
+
+    year = st.selectbox(
+        "Select Year",
+        year_list
+    )
+
+
+# ==============================
+# RIGHT COLUMN
+# ==============================
+
+with col2:
+
+    # --------------------------
+    # Brand
+    # --------------------------
+
+    brand_df = expense_df[
+        expense_df["Zone"] == zone
+    ]
+
+    brand_list = sorted(
+        brand_df["Brand"]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist()
+    )
+
+    if len(brand_list) == 1:
+
+        brand = brand_list[0]
+
+        st.text_input(
+            "Brand",
+            value=brand,
+            disabled=True
+        )
+
+    else:
+
+        brand = st.selectbox(
+            "Select Brand",
+            brand_list
+        )
+
+    # --------------------------
+    # Month
+    # --------------------------
+
+    available_months = (
+        expense_df["Month"]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist()
+    )
+
+    month_list = [
+        month
+        for month in MONTH_ORDER_CALENDAR
+        if month in available_months
+    ]
+
+    month = st.selectbox(
+        "Select Month",
+        month_list
+    )
 # ==================================
 # FILE UPLOAD
 # ==================================
