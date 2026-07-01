@@ -325,7 +325,6 @@ if st.button(
     # ==================================
     # UPLOAD BUTTON
     # ==================================
-
     upload = st.button(
         "🚀 Upload Data",
         type="primary",
@@ -333,36 +332,26 @@ if st.button(
     )
 
     if upload:
-
         success = append_dataframe_to_sheet(
             "Expenes",
             df_upload
         )
-
         if success:
-
             st.success(
                 f"""
 ✅ Expense data uploaded successfully.
-
 Records Uploaded : {len(df_upload)}
-
 Zone : {zone}
-
 Brand : {brand}
-
 Month : {month}
-
 Year : {year}
 """
             )
-
             st.balloons()
 
             # ==================================
             # SAVE SESSION STATE
             # ==================================
-
             st.session_state["upload_zone"] = zone
             st.session_state["upload_brand"] = brand
             st.session_state["upload_year"] = year
@@ -372,9 +361,7 @@ Year : {year}
 
             # Refresh cached data
             st.cache_data.clear()
-
         else:
-
             st.error(
                 "❌ Upload failed. Please try again."
             )
