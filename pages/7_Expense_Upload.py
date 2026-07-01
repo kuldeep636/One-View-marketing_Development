@@ -108,11 +108,11 @@ with col2:
     else:
         brand = st.selectbox("Select Brand", brand_list)
 
-# MONTH
-month = st.selectbox(
-    "Select Month",
-    MONTH_ORDER_CALENDAR
-)
+    # MONTH
+    month = st.selectbox(
+        "Select Month",
+        MONTH_ORDER_CALENDAR
+    )
 
 with st.expander("🔍 Validation Guide", expanded=False):
     st.markdown("""
