@@ -325,6 +325,8 @@ EXPENSE_REQUIRED_COLUMNS = [
     "Activity End date",
     "AMT(W/o GST)",
     "GST%",
+    "GST Amt",
+    "Total Amt",
     "OEM Support (W/o GST)",
     "Support Remarks"
 ]
