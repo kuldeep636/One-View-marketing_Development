@@ -35,6 +35,13 @@ if not st.session_state.get(
 ):
     st.warning("Please login first.")
     st.stop()
+# ==================================
+# USER INFO
+# ==================================
+
+role = st.session_state.get("role", "")
+name = st.session_state.get("name", "Unknown")
+
 
 # ==================================
 # UI
@@ -284,7 +291,7 @@ if st.button(
         brand=brand,
         year=year,
         month=month,
-        uploaded_by=st.session_state["user_name"]
+        uploaded_by=name
     )
 
     st.success(
