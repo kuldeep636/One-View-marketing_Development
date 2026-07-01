@@ -1,69 +1,45 @@
 import pandas as pd
 from datetime import datetime
 
-
-
 # ==========================================
 # REQUIRED COLUMNS
 # ==========================================
 REQUIRED_COLUMNS = [
-    "Vertical",
-    "Location",
-    "Activity Type",
-    "Activity Sub Type",
-    "Activity Description",
-    "Activity Start date",
-    "Activity End date",
-    "Investment"
+    "Vertical", "Location", "Activity Type", "Activity Sub Type",
+    "Activity Description", "Activity Start date", "Activity End date", "Investment"
 ]
 
 VALID_VERTICALS = ["Sales", "After Sales"]
-
 VALID_ACTIVITY_TYPES = ["ATL", "BTL", "DIGITAL", "FLEXY"]
 
 # ==========================================
-# NEW MAPPINGS (as requested)
+# MAPPINGS
 # ==========================================
 VERTICAL_MAPPING = {
     "sales": "Sales",
     "after sales": "After Sales"
 }
 
-
-
-
 # ==========================================
-# HELPER FUNCTION (as requested)
+# HELPER FUNCTIONS
 # ==========================================
 def normalize_text(value):
     return " ".join(str(value).strip().split())
 
 
-# ==========================================
-# DATE FORMAT
-# ==========================================
-DATE_FORMAT = "%d-%b-%Y"
-
-
-# ==========================================
-# INITIALIZE
-# ==========================================
 def initialize_validation():
     validation_errors = []
     invalid_row_numbers = set()
     return validation_errors, invalid_row_numbers
 
 
-# ==========================================
-# ADD ERROR
-# ==========================================
 def add_error(validation_errors, invalid_row_numbers, row_no, message):
     validation_errors.append(f"Row {row_no}: {message}")
     invalid_row_numbers.add(row_no)
 
 
 # ==========================================
-# REQUIRED COLUMNS
+# VALIDATION FUNCTIONS
 # ==========================================
 def validate_required_columns(df, validation_errors, invalid_row_numbers):
     missing_columns = [col for col in REQUIRED_COLUMNS if col not in df.columns]
@@ -75,9 +51,6 @@ def validate_required_columns(df, validation_errors, invalid_row_numbers):
     return True
 
 
-# ==========================================
-# BLANK VALUES
-# ==========================================
 def validate_blank_values(df, validation_errors, invalid_row_numbers):
     for idx, row in df.iterrows():
         row_no = idx + 2
@@ -92,16 +65,11 @@ def validate_blank_values(df, validation_errors, invalid_row_numbers):
                 )
 
 
-# ==========================================
-# UPDATED VERTICAL VALIDATION (as requested)
-# ==========================================
 def validate_vertical(df, validation_errors, invalid_row_numbers):
     for idx, row in df.iterrows():
         row_no = idx + 2
-        
         vertical = normalize_text(row["Vertical"])
         key = vertical.lower()
-
         if key in VERTICAL_MAPPING:
             df.at[idx, "Vertical"] = VERTICAL_MAPPING[key]
         else:
@@ -113,9 +81,6 @@ def validate_vertical(df, validation_errors, invalid_row_numbers):
             )
 
 
-# ==========================================
-# ACTIVITY TYPE VALIDATION
-# ==========================================
 def validate_activity_type(df, validation_errors, invalid_row_numbers):
     for idx, row in df.iterrows():
         row_no = idx + 2
@@ -129,16 +94,12 @@ def validate_activity_type(df, validation_errors, invalid_row_numbers):
             )
 
 
-# ==========================================
-# ACTIVITY SUB TYPE VALIDATION
-# ==========================================
 def validate_activity_subtype(df, activity_subtypes, validation_errors, invalid_row_numbers):
     for idx, row in df.iterrows():
         row_no = idx + 2
         activity = str(row["Activity Type"]).strip().upper()
         subtype = str(row["Activity Sub Type"]).strip()
 
-        # FLEXY - Allow any non-blank subtype
         if activity == "FLEXY":
             if subtype == "":
                 add_error(
@@ -149,7 +110,6 @@ def validate_activity_subtype(df, activity_subtypes, validation_errors, invalid_
                 )
             continue
 
-        # ATL / BTL / DIGITAL
         valid_subtypes = activity_subtypes.get(activity, [])
         if subtype not in valid_subtypes:
             add_error(
@@ -160,9 +120,6 @@ def validate_activity_subtype(df, activity_subtypes, validation_errors, invalid_
             )
 
 
-# ==========================================
-# INVESTMENT VALIDATION
-# ==========================================
 def validate_investment(df, validation_errors, invalid_row_numbers):
     for idx, row in df.iterrows():
         row_no = idx + 2
@@ -186,58 +143,21 @@ def validate_investment(df, validation_errors, invalid_row_numbers):
             )
 
 
-# ==========================================
-# DATE VALIDATION
-# ==========================================
-def validate_dates(
-    df,
-    selected_month,
-    selected_year,
-    validation_errors,
-    invalid_row_numbers
-):
+def validate_dates(df, selected_month, selected_year, validation_errors, invalid_row_numbers):
     for idx, row in df.iterrows():
-
         row_no = idx + 2
-
-        # -------------------------
-        # Read Start Date
-        # -------------------------
         try:
-            start_date = pd.to_datetime(
-                row["Activity Start date"],
-                errors="raise"
-            )
+            start_date = pd.to_datetime(row["Activity Start date"], errors="raise")
         except:
-            add_error(
-                validation_errors,
-                invalid_row_numbers,
-                row_no,
-                "Invalid Activity Start date"
-            )
+            add_error(validation_errors, invalid_row_numbers, row_no, "Invalid Activity Start date")
             continue
 
-        # -------------------------
-        # Read End Date
-        # -------------------------
         try:
-            end_date = pd.to_datetime(
-                row["Activity End date"],
-                errors="raise"
-            )
+            end_date = pd.to_datetime(row["Activity End date"], errors="raise")
         except:
-            add_error(
-                validation_errors,
-                invalid_row_numbers,
-                row_no,
-                "Invalid Activity End date"
-            )
+            add_error(validation_errors, invalid_row_numbers, row_no, "Invalid Activity End date")
             continue
 
-        # -------------------------
-        # Start Date must belong to
-        # selected upload month/year
-        # -------------------------
         if start_date.strftime("%b") != selected_month:
             add_error(
                 validation_errors,
@@ -245,7 +165,6 @@ def validate_dates(
                 row_no,
                 f"Activity Start date must belong to {selected_month}"
             )
-
         if start_date.year != int(selected_year):
             add_error(
                 validation_errors,
@@ -254,10 +173,6 @@ def validate_dates(
                 f"Activity Start date must belong to {selected_year}"
             )
 
-        # -------------------------
-        # End Date cannot be before
-        # Start Date
-        # -------------------------
         if end_date < start_date:
             add_error(
                 validation_errors,
@@ -266,135 +181,82 @@ def validate_dates(
                 "Activity End date cannot be before Activity Start date"
             )
 
-# ==========================================
-# MASTER VALIDATION
-# ==========================================
+
 def validate_upload(df_upload, selected_month, selected_year, activity_subtypes):
     validation_errors, invalid_row_numbers = initialize_validation()
 
-    # Required Columns
-    columns_ok = validate_required_columns(
-        df_upload, validation_errors, invalid_row_numbers
-    )
+    columns_ok = validate_required_columns(df_upload, validation_errors, invalid_row_numbers)
     if not columns_ok:
         return validation_errors, invalid_row_numbers
 
-    # Blank Values
     validate_blank_values(df_upload, validation_errors, invalid_row_numbers)
-
-    # Vertical
     validate_vertical(df_upload, validation_errors, invalid_row_numbers)
-
-    # Activity Type
     validate_activity_type(df_upload, validation_errors, invalid_row_numbers)
-
-    # Activity Sub Type
-    validate_activity_subtype(
-        df_upload, activity_subtypes, validation_errors, invalid_row_numbers
-    )
-
-    # Investment
+    validate_activity_subtype(df_upload, activity_subtypes, validation_errors, invalid_row_numbers)
     validate_investment(df_upload, validation_errors, invalid_row_numbers)
+    validate_dates(df_upload, selected_month, selected_year, validation_errors, invalid_row_numbers)
 
-    # Dates
-    validate_dates(
-        df_upload, selected_month, selected_year, validation_errors, invalid_row_numbers
-    )
-
-    # Remove duplicate errors
     validation_errors = list(dict.fromkeys(validation_errors))
     invalid_row_numbers = sorted(list(invalid_row_numbers))
-
     return validation_errors, invalid_row_numbers
 
 
 # ==========================================
-# EXPENSE UPLOAD VALIDATION
+# EXPENSE VALIDATION
 # ==========================================
-
 EXPENSE_REQUIRED_COLUMNS = [
-    "Location",
-    "Vertical",
-    "Activity type",
-    "Vendor",
-    "Bifurcation",
-    "Description of Work",
-    "State",
-    "City",
-    "Activity Start date",
-    "Activity End date",
-    "AMT(W/o GST)",
-    "GST%",
-    "GST Amt",
-    "Total Amt",
-    "OEM Support (W/o GST)",
-    "Support Remarks"
+    "Location", "Vertical", "Activity type", "Vendor", "Bifurcation",
+    "Description of Work", "State", "City", "Activity Start date",
+    "Activity End date", "AMT(W/o GST)", "GST%", "GST Amt", "Total Amt",
+    "OEM Support (W/o GST)", "Support Remarks"
 ]
 
 
 def validate_expense_required_columns(df):
-
-    missing_columns = [
-        col
-        for col in EXPENSE_REQUIRED_COLUMNS
-        if col not in df.columns
-    ]
-
-    extra_columns = [
-        col
-        for col in df.columns
-        if col not in EXPENSE_REQUIRED_COLUMNS
-    ]
-
+    missing_columns = [col for col in EXPENSE_REQUIRED_COLUMNS if col not in df.columns]
+    extra_columns = [col for col in df.columns if col not in EXPENSE_REQUIRED_COLUMNS]
     return missing_columns, extra_columns
 
-# ==========================================
-# EXPENSE CALCULATION VALIDATION
-# ==========================================
 
 def validate_expense_calculations(df):
-
     validation_errors = []
-
     for idx, row in df.iterrows():
-
         row_no = idx + 2
-
         try:
-
             amount = float(row["AMT(W/o GST)"])
             gst_percent = float(row["GST%"])
             gst = float(row["GST Amt"])
             total = float(row["Total Amt"])
             support = float(row.get("OEM Support (W/o GST)", 0) or 0)
-
         except Exception:
-            validation_errors.append(
-                f"Row {row_no}: Invalid numeric values."
-            )
+            validation_errors.append(f"Row {row_no}: Invalid numeric values.")
             continue
 
         expected_gst = round(amount * gst_percent / 100, 2)
         expected_total = round(amount + expected_gst, 2)
         expected_net = round(expected_total - support, 2)
 
-        # GST Validation
         if round(gst, 2) != expected_gst:
-
             validation_errors.append(
-                f"Row {row_no}: GST mismatch "
-                f"(Expected {expected_gst}, Uploaded {gst})"
+                f"Row {row_no}: GST mismatch (Expected {expected_gst}, Uploaded {gst})"
             )
-
-        # Total Validation
         if round(total, 2) != expected_total:
-
             validation_errors.append(
-                f"Row {row_no}: Total Amount mismatch "
-                f"(Expected {expected_total}, Uploaded {total})"
+                f"Row {row_no}: Total Amount mismatch (Expected {expected_total}, Uploaded {total})"
             )
-
-        # Net Expense
-        row["Calculated Net Expense"] = expected_net
 
     return validation_errors
+
+
+def validate_expense_upload(df_upload):
+    validation_errors, invalid_row_numbers = initialize_validation()
+
+    missing_columns, extra_columns = validate_expense_required_columns(df_upload)
+    if missing_columns:
+        validation_errors.append("Missing Required Columns : " + ", ".join(missing_columns))
+        return validation_errors, invalid_row_numbers, extra_columns
+
+    # Add other expense validations here as needed...
+    validation_errors = list(dict.fromkeys(validation_errors))
+    invalid_row_numbers = sorted(list(invalid_row_numbers))
+    return validation_errors, invalid_row_numbers, extra_columns
