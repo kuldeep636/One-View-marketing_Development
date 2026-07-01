@@ -6,6 +6,7 @@ from utils.access import apply_role_access
 from utils.validation import (
     validate_expense_upload
 )
+from utils.expense import prepare_expense_data
 from utils.gsheet import load_expense_data
 from utils.ui import (
     inject_css,
@@ -44,7 +45,6 @@ with st.expander("📖 Upload Guide", expanded=True):
 - Upload the Expense Excel
 
 The system will automatically generate:
-- The system will automatically generate:
 - Net Expenses
 - Calendar Quarter
 - Financial Quarter
@@ -193,11 +193,23 @@ if st.button("Validate File", type="primary", use_container_width=True):
         st.stop()
 
     if extra_columns:
-        st.warning("⚠️ Extra Columns Found")
-        st.write(extra_columns)
-    st.success("✅ All validations completed successfully.")
-    st.success("✅ Template validated successfully.")
+    st.warning("⚠️ Extra Columns Found")
+    st.write(extra_columns)
 
+    # ==================================
+    # PREPARE DATA
+    # ==================================
+    
+    df_upload = prepare_expense_data(
+        df=df_upload,
+        zone=zone,
+        brand=brand,
+        year=year,
+        month=month,
+        uploaded_by=st.session_state["user_name"]
+    )
+
+st.success("✅ All validations completed successfully.")
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("Total Rows", len(df_upload))
@@ -217,6 +229,8 @@ if st.button("Validate File", type="primary", use_container_width=True):
         hide_index=True
     )
 
+
+    
     # Save to session state
     st.session_state["upload_zone"] = zone
     st.session_state["upload_brand"] = brand
