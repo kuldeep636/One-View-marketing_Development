@@ -6,6 +6,10 @@ from utils.access import apply_role_access
 from utils.validation import (
     validate_expense_upload
 )
+from utils.gsheet import (
+    load_expense_data,
+    append_dataframe_to_sheet
+)
 from utils.expense import prepare_expense_data
 from utils.gsheet import load_expense_data
 from utils.ui import (
@@ -43,7 +47,6 @@ with st.expander("📖 Upload Guide", expanded=True):
 - Select Zone
 - Select Brand
 - Upload the Expense Excel
-
 The system will automatically generate:
 - Net Expenses
 - Calendar Quarter
@@ -117,15 +120,12 @@ with col2:
 with st.expander("🔍 Validation Guide", expanded=False):
     st.markdown("""
 ### The system will validate the following before upload
-
 #### 📄 Template Validation
 - Required columns must be present.
 - Extra columns will be ignored.
-
 #### 💰 Financial Validation
 - GST will be verified.
 - Total Amount will be verified.
-
 #### ⚙️ System Generated
 The following fields will be generated automatically:
 - Zone, Brand, Year, Month
@@ -133,7 +133,6 @@ The following fields will be generated automatically:
 - Calendar Quarter, Financial Quarter
 - Financial Year
 - Uploaded By, Upload Timestamp
-
 #### ❌ Upload will stop if
 - Required columns are missing.
 - GST calculation is incorrect.
@@ -183,6 +182,7 @@ if st.button("Validate File", type="primary", use_container_width=True):
         .dropna(how="all")
         .reset_index(drop=True)
     )
+
     # Full Validation
     validation_errors, invalid_rows, extra_columns = validate_expense_upload(df_upload)
 
@@ -199,7 +199,6 @@ if st.button("Validate File", type="primary", use_container_width=True):
     # ==================================
     # PREPARE DATA
     # ==================================
-    
     df_upload = prepare_expense_data(
         df=df_upload,
         zone=zone,
@@ -210,34 +209,66 @@ if st.button("Validate File", type="primary", use_container_width=True):
     )
 
     st.success("✅ All validations completed successfully.")
-    col1, col2, col3 = st.columns(3)
 
+    col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("Total Rows", len(df_upload))
-    
+
     with col2:
         st.metric("Total Columns", len(df_upload.columns))
-    
+
     with col3:
         st.metric(
             "Total Amount",
             f"₹ {df_upload['AMT(W/o GST)'].sum():,.0f}"
         )
+
     st.divider()
     st.subheader("📋 Upload Preview")
+    st.divider()
 
-    st.caption(
-        "This is the final data that will be uploaded to Google Sheets."
-    )
-    
-    st.dataframe(
-        df_upload,
-        use_container_width=True,
-        hide_index=True
+    upload = st.button(
+        "🚀 Upload Data",
+        type="primary",
+        use_container_width=True
     )
 
+    if upload:
+        success = append_dataframe_to_sheet(
+            "Expenes",
+            df_upload
+        )
+        if success:
+            st.success(
+                "✅ Expense data uploaded successfully."
+            )
+        else:
+            st.error(
+                "Upload failed."
+            )
 
-    
+        st.caption(
+            "This is the final data that will be uploaded to Google Sheets."
+        )
+
+        st.dataframe(
+            df_upload,
+            use_container_width=True,
+            hide_index=True
+        )
+        st.balloons()
+
+        st.success(
+            f"""
+Successfully uploaded
+{len(df_upload)} records.
+Zone : {zone}
+Brand : {brand}
+Month : {month}
+Year : {year}
+"""
+        )
+
     # Save to session state
     st.session_state["upload_zone"] = zone
     st.session_state["upload_brand"] = brand
