@@ -345,3 +345,54 @@ def validate_expense_required_columns(df):
     ]
 
     return missing_columns, extra_columns
+
+# ==========================================
+# EXPENSE CALCULATION VALIDATION
+# ==========================================
+
+def validate_expense_calculations(df):
+
+    validation_errors = []
+
+    for idx, row in df.iterrows():
+
+        row_no = idx + 2
+
+        try:
+
+            amount = float(row["AMT(W/o GST)"])
+            gst_percent = float(row["GST%"])
+            gst = float(row["GST"])
+            total = float(row["Total AMT"])
+            support = float(row.get("OEM Support (W/o GST)", 0) or 0)
+
+        except Exception:
+            validation_errors.append(
+                f"Row {row_no}: Invalid numeric values."
+            )
+            continue
+
+        expected_gst = round(amount * gst_percent / 100, 2)
+        expected_total = round(amount + expected_gst, 2)
+        expected_net = round(expected_total - support, 2)
+
+        # GST Validation
+        if round(gst, 2) != expected_gst:
+
+            validation_errors.append(
+                f"Row {row_no}: GST mismatch "
+                f"(Expected {expected_gst}, Uploaded {gst})"
+            )
+
+        # Total Validation
+        if round(total, 2) != expected_total:
+
+            validation_errors.append(
+                f"Row {row_no}: Total Amount mismatch "
+                f"(Expected {expected_total}, Uploaded {total})"
+            )
+
+        # Net Expense
+        row["Calculated Net Expense"] = expected_net
+
+    return validation_errors
