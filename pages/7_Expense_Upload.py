@@ -69,9 +69,7 @@ expense_df = apply_role_access(expense_df)
 # ==================================
 col1, col2 = st.columns(2)
 
-# ==============================
 # LEFT COLUMN
-# ==============================
 with col1:
     # Zone
     zone_list = sorted(
@@ -91,14 +89,11 @@ with col1:
     from datetime import datetime
     current_year = datetime.now().year
     year_list = [
-        str(year)
-        for year in range(current_year - 2, current_year + 3)
+        str(year) for year in range(current_year - 2, current_year + 3)
     ]
     year = st.selectbox("Select Year", year_list)
 
-# ==============================
 # RIGHT COLUMN
-# ==============================
 with col2:
     # Brand
     brand_df = expense_df[expense_df["Zone"] == zone]
@@ -115,21 +110,19 @@ with col2:
     else:
         brand = st.selectbox("Select Brand", brand_list)
 
-# ==================================
-# MONTH
-# ==================================
-
+# MONTH (outside columns)
+available_months = (
+    expense_df["Month"]
+    .dropna()
+    .astype(str)
+    .unique()
+    .tolist()
+)
+month_list = [m for m in MONTH_ORDER_CALENDAR if m in available_months]
 month = st.selectbox(
     "Select Month",
-    MONTH_ORDER_CALENDAR
+    month_list
 )
-    month_list = [
-        month for month in MONTH_ORDER_CALENDAR if month in available_months
-    ]
-    month = st.selectbox(
-        "Select Month",
-        month_list
-    )
 
 with st.expander("🔍 Validation Guide", expanded=False):
     st.markdown("""
@@ -162,8 +155,8 @@ The following fields will be generated automatically:
 # ==================================
 st.divider()
 st.subheader("📂 Upload File")
-
 col1, col2 = st.columns([1, 2])
+
 with col1:
     try:
         with open("assets/Expense_Upload_Template.xlsx", "rb") as file:
