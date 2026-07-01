@@ -11,8 +11,7 @@ from utils.gsheet import (
     append_dataframe_to_sheet
 )
 from utils.expense import prepare_expense_data
-from utils.gsheet import load_expense_data
-from utils.ui import (
+from utils.gsheet import load_expense_datafrom utils.ui import (
     inject_css,
     page_header
 )
@@ -227,6 +226,16 @@ if st.button("Validate File", type="primary", use_container_width=True):
     st.subheader("📋 Upload Preview")
     st.divider()
 
+     st.caption(
+            "This is the final data that will be uploaded to Google Sheets."
+        )
+
+        st.dataframe(
+            df_upload,
+            use_container_width=True,
+            hide_index=True
+        )
+
     upload = st.button(
         "🚀 Upload Data",
         type="primary",
@@ -247,15 +256,7 @@ if st.button("Validate File", type="primary", use_container_width=True):
                 "Upload failed."
             )
 
-        st.caption(
-            "This is the final data that will be uploaded to Google Sheets."
-        )
-
-        st.dataframe(
-            df_upload,
-            use_container_width=True,
-            hide_index=True
-        )
+       
         st.balloons()
 
         st.success(
