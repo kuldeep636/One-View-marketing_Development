@@ -364,8 +364,8 @@ def validate_expense_calculations(df):
 
             amount = float(row["AMT(W/o GST)"])
             gst_percent = float(row["GST%"])
-            gst = float(row["GST"])
-            total = float(row["Total AMT"])
+            gst = float(row["GST Amt"])
+            total = float(row["Total Amt"])
             support = float(row.get("OEM Support (W/o GST)", 0) or 0)
 
         except Exception:
