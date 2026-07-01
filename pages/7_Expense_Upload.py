@@ -211,16 +211,18 @@ if st.button("Validate File", type="primary", use_container_width=True):
 
     st.success("✅ All validations completed successfully.")
     col1, col2, col3 = st.columns(3)
+
     with col1:
         st.metric("Total Rows", len(df_upload))
+    
     with col2:
         st.metric("Total Columns", len(df_upload.columns))
+    
     with col3:
         st.metric(
             "Total Amount",
             f"₹ {df_upload['AMT(W/o GST)'].sum():,.0f}"
         )
-
     st.divider()
     st.subheader("📋 Upload Preview")
 
