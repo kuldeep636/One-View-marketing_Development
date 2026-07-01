@@ -204,59 +204,241 @@ def validate_upload(df_upload, selected_month, selected_year, activity_subtypes)
 # ==========================================
 # EXPENSE VALIDATION
 # ==========================================
+
 EXPENSE_REQUIRED_COLUMNS = [
-    "Location", "Vertical", "Activity type", "Vendor", "Bifurcation",
-    "Description of Work", "State", "City", "Activity Start date",
-    "Activity End date", "AMT(W/o GST)", "GST%", "GST Amt", "Total Amt",
-    "OEM Support (W/o GST)", "Support Remarks"
+    "Location",
+    "Vertical",
+    "Activity type",
+    "Vendor",
+    "Bifurcation",
+    "Description of Work",
+    "State",
+    "City",
+    "Activity Start date",
+    "Activity End date",
+    "AMT(W/o GST)",
+    "GST%",
+    "GST Amt",
+    "Total Amt",
+    "OEM Support (W/o GST)",
+    "Support Remarks"
 ]
 
 
+# ==========================================
+# REQUIRED COLUMNS
+# ==========================================
+
 def validate_expense_required_columns(df):
-    missing_columns = [col for col in EXPENSE_REQUIRED_COLUMNS if col not in df.columns]
-    extra_columns = [col for col in df.columns if col not in EXPENSE_REQUIRED_COLUMNS]
+
+    missing_columns = [
+        col
+        for col in EXPENSE_REQUIRED_COLUMNS
+        if col not in df.columns
+    ]
+
+    extra_columns = [
+        col
+        for col in df.columns
+        if col not in EXPENSE_REQUIRED_COLUMNS
+    ]
+
     return missing_columns, extra_columns
 
 
-def validate_expense_calculations(df):
-    validation_errors = []
+# ==========================================
+# BLANK VALUES
+# ==========================================
+
+def validate_expense_blank_values(
+    df,
+    validation_errors,
+    invalid_row_numbers
+):
+
     for idx, row in df.iterrows():
+
         row_no = idx + 2
+
+        for col in EXPENSE_REQUIRED_COLUMNS:
+
+            value = row[col]
+
+            if pd.isna(value) or str(value).strip() == "":
+
+                add_error(
+                    validation_errors,
+                    invalid_row_numbers,
+                    row_no,
+                    f"{col} cannot be blank"
+                )
+
+
+# ==========================================
+# GST VALIDATION
+# ==========================================
+
+def validate_gst(
+    df,
+    validation_errors,
+    invalid_row_numbers
+):
+
+    for idx, row in df.iterrows():
+
+        row_no = idx + 2
+
         try:
+
             amount = float(row["AMT(W/o GST)"])
             gst_percent = float(row["GST%"])
             gst = float(row["GST Amt"])
-            total = float(row["Total Amt"])
-            support = float(row.get("OEM Support (W/o GST)", 0) or 0)
-        except Exception:
-            validation_errors.append(f"Row {row_no}: Invalid numeric values.")
+
+        except:
+
+            add_error(
+                validation_errors,
+                invalid_row_numbers,
+                row_no,
+                "Invalid GST values"
+            )
+
             continue
 
-        expected_gst = round(amount * gst_percent / 100, 2)
-        expected_total = round(amount + expected_gst, 2)
-        expected_net = round(expected_total - support, 2)
+        expected_gst = round(
+            amount * gst_percent / 100,
+            2
+        )
 
         if round(gst, 2) != expected_gst:
-            validation_errors.append(
-                f"Row {row_no}: GST mismatch (Expected {expected_gst}, Uploaded {gst})"
+
+            add_error(
+                validation_errors,
+                invalid_row_numbers,
+                row_no,
+                f"GST Amt should be {expected_gst}"
             )
+
+
+# ==========================================
+# TOTAL AMOUNT VALIDATION
+# ==========================================
+
+def validate_total_amount(
+    df,
+    validation_errors,
+    invalid_row_numbers
+):
+
+    for idx, row in df.iterrows():
+
+        row_no = idx + 2
+
+        try:
+
+            amount = float(row["AMT(W/o GST)"])
+            gst = float(row["GST Amt"])
+            total = float(row["Total Amt"])
+
+        except:
+
+            add_error(
+                validation_errors,
+                invalid_row_numbers,
+                row_no,
+                "Invalid Total Amount"
+            )
+
+            continue
+
+        expected_total = round(
+            amount + gst,
+            2
+        )
+
         if round(total, 2) != expected_total:
-            validation_errors.append(
-                f"Row {row_no}: Total Amount mismatch (Expected {expected_total}, Uploaded {total})"
+
+            add_error(
+                validation_errors,
+                invalid_row_numbers,
+                row_no,
+                f"Total Amt should be {expected_total}"
             )
 
-    return validation_errors
 
+# ==========================================
+# MASTER VALIDATION
+# ==========================================
 
 def validate_expense_upload(df_upload):
+
     validation_errors, invalid_row_numbers = initialize_validation()
 
-    missing_columns, extra_columns = validate_expense_required_columns(df_upload)
-    if missing_columns:
-        validation_errors.append("Missing Required Columns : " + ", ".join(missing_columns))
-        return validation_errors, invalid_row_numbers, extra_columns
+    # --------------------------
+    # Required Columns
+    # --------------------------
 
-    # Add other expense validations here as needed...
-    validation_errors = list(dict.fromkeys(validation_errors))
-    invalid_row_numbers = sorted(list(invalid_row_numbers))
-    return validation_errors, invalid_row_numbers, extra_columns
+    missing_columns, extra_columns = (
+        validate_expense_required_columns(df_upload)
+    )
+
+    if missing_columns:
+
+        validation_errors.append(
+            "Missing Required Columns : "
+            + ", ".join(missing_columns)
+        )
+
+        return (
+            validation_errors,
+            invalid_row_numbers,
+            extra_columns
+        )
+
+    # --------------------------
+    # Blank Values
+    # --------------------------
+
+    validate_expense_blank_values(
+        df_upload,
+        validation_errors,
+        invalid_row_numbers
+    )
+
+    # --------------------------
+    # GST Validation
+    # --------------------------
+
+    validate_gst(
+        df_upload,
+        validation_errors,
+        invalid_row_numbers
+    )
+
+    # --------------------------
+    # Total Amount Validation
+    # --------------------------
+
+    validate_total_amount(
+        df_upload,
+        validation_errors,
+        invalid_row_numbers
+    )
+
+    # --------------------------
+    # Remove Duplicate Errors
+    # --------------------------
+
+    validation_errors = list(
+        dict.fromkeys(validation_errors)
+    )
+
+    invalid_row_numbers = sorted(
+        list(invalid_row_numbers)
+    )
+
+    return (
+        validation_errors,
+        invalid_row_numbers,
+        extra_columns
+    )
