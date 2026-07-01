@@ -222,7 +222,12 @@ if st.button("Validate File", type="primary", use_container_width=True):
         )
 
     st.divider()
-    st.subheader("Preview")
+    st.subheader("📋 Upload Preview")
+
+    st.caption(
+        "This is the final data that will be uploaded to Google Sheets."
+    )
+    
     st.dataframe(
         df_upload,
         use_container_width=True,
