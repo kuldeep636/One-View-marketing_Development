@@ -193,8 +193,8 @@ if st.button("Validate File", type="primary", use_container_width=True):
         st.stop()
 
     if extra_columns:
-    st.warning("⚠️ Extra Columns Found")
-    st.write(extra_columns)
+        st.warning("⚠️ Extra Columns Found")
+        st.write(extra_columns)
 
     # ==================================
     # PREPARE DATA
@@ -209,7 +209,7 @@ if st.button("Validate File", type="primary", use_container_width=True):
         uploaded_by=st.session_state["user_name"]
     )
 
-st.success("✅ All validations completed successfully.")
+    st.success("✅ All validations completed successfully.")
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("Total Rows", len(df_upload))
