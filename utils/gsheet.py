@@ -168,14 +168,17 @@ def append_dataframe_to_sheet(
         return False
 
     try:
-
+        st.info("Step 1 : Connected to append_dataframe_to_sheet()")
         sheet = get_sheet()
+        st.info("Step 2 : Connected to Google Sheet")
 
         worksheet = sheet.worksheet(
             worksheet_name
         )
-
+        st.info(f"Step 3 : Opened worksheet '{worksheet_name}'")
         sheet_headers = worksheet.row_values(1)
+
+        st.success("Step 4 : Headers loaded successfully")
 
         df = df.copy()
 
@@ -223,15 +226,23 @@ def append_dataframe_to_sheet(
             .values
             .tolist()
         )
+        st.success(f"Step 5 : Prepared {len(rows)} rows for upload")
+        st.info("Step 6 : Uploading rows...")
 
+        st.write("Sheet Headers")
+        st.write(sheet_headers)
+        
+        st.write("DataFrame Columns")
+        st.write(df.columns.tolist())
         worksheet.append_rows(
             rows,
             value_input_option="USER_ENTERED"
         )
-
+        st.success("Step 7 : Upload completed")
         st.cache_data.clear()
 
         return True
+    st.write(rows[0])
 
     except Exception as e:
 
