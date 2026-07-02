@@ -282,6 +282,49 @@ if st.button(
             extra_columns
         )
 
+# ==================================
+# SHOW PREVIEW AFTER VALIDATION
+# ==================================
+
+if st.session_state.get("validated", False):
+
+    df_upload = st.session_state["expense_df"]
+
+    st.divider()
+
+    st.subheader("📋 Upload Preview")
+
+    st.dataframe(
+        df_upload,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    if st.button(
+        "🚀 Upload Data",
+        type="primary",
+        use_container_width=True
+    ):
+
+        success = append_dataframe_to_sheet(
+            "Expenes",
+            df_upload
+        )
+
+        if success:
+
+            st.success("Upload Successful")
+
+            st.balloons()
+
+            st.cache_data.clear()
+
+            st.session_state["validated"] = False 
+
+
+
+
+    
     # ==================================
     # PREPARE DATA
     # ==================================
@@ -293,6 +336,9 @@ if st.button(
         month=month,
         uploaded_by=name
     )
+
+    st.session_state["validated"] = True
+    st.session_state["expense_df"] = df_upload
 
     st.success(
         "✅ All validations completed successfully."
@@ -359,11 +405,13 @@ Year : {year}
             # ==================================
             # SAVE SESSION STATE
             # ==================================
+            
             st.session_state["upload_zone"] = zone
             st.session_state["upload_brand"] = brand
             st.session_state["upload_year"] = year
             st.session_state["upload_month"] = month
             st.session_state["uploaded_expense_file"] = uploaded_file
+            
             st.session_state["expense_df"] = df_upload
 
             # Refresh cached data
